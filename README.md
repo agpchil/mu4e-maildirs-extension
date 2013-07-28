@@ -8,12 +8,29 @@ To minimize performance issues this information is _cached_ until the index is c
 
 ![Screenshot](https://drive.google.com/uc?export=view&id=0Byv-S6nIE7oRVm85UGVxY3FqMUE)
 
-## Basic Usage
+## Basic usage
 
 ```lisp
 (require 'mu4e-maildirs-extension)
 (mu4e-maildirs-extension)
 ```
+
+## Directory structure
+
+This extension expects the following maildir structure in `mu4e-maildir` directory:
+
+```
+account1/
+  submaildir1/
+  submaildir2/
+  ...
+account2/
+  submaildir1/
+  submaildir2/
+  ...
+```
+
+Pop3 configurations usually have `{cur,new,tmp}` directly in `account1/` but you should put them inside a submaildir to make this extension work (ex: account1/inbox/{¢ur,new,tmp}).
 
 ## Customize
 
