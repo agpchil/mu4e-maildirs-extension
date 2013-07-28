@@ -30,7 +30,7 @@ account2/
   ...
 ```
 
-Pop3 configurations usually have `{cur,new,tmp}` directly in `account1/` but you should put them inside a submaildir to make this extension work (ex: account1/inbox/{¢ur,new,tmp}).
+Pop3 configurations usually have `{cur,new,tmp}` directly in `account1/` but you should put them inside a submaildir to make this extension work (ex: `account1/inbox/{cur,new,tmp}`).
 
 ## Customize
 
