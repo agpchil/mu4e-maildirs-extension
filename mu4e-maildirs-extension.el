@@ -44,7 +44,7 @@
 (defvar mu4e-maildirs-extension-cached-maildirs-count nil)
 (defvar mu4e-maildirs-extension-buffer-name mu4e~main-buffer-name)
 (defvar mu4e-maildirs-extension-count-command-format
-  "mu find %s maildir:%s --fields 'i' 2>/dev/null |wc -l |tr -d '\n'")
+  "mu find %s maildir:'%s' --fields 'i' 2>/dev/null |wc -l |tr -d '\n'")
 (defvar mu4e-maildirs-extension-index-updated-func
   'mu4e-maildirs-extension-index-updated-handler)
 (defvar mu4e-maildirs-extension-main-view-func
