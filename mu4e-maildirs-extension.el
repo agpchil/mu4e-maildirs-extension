@@ -155,7 +155,7 @@ Insert the parent maildir name if ITEM has a different one from PREV."
                 (propertize mu4e-maildirs-extension-title 'face 'mu4e-title-face))
 
         (insert "\n"
-                (mu4e~main-action-str "\t* [u]pdate cache\n" "u"))
+                (mu4e~main-action-str "\t* [u]pdate index & cache\n" "u"))
         (define-key mu4e-main-mode-map "u" 'mu4e-maildirs-extension-insert-summary-no-cache)
 
         (dolist (item maildirs)
@@ -168,9 +168,8 @@ Insert the parent maildir name if ITEM has a different one from PREV."
 (defun mu4e-maildirs-extension-insert-summary-no-cache ()
   "Clear cache and insert maildirs summary."
   (interactive)
-  (setq mu4e-maildirs-extension-cached-maildirs-count nil)
-  (mu4e-message "Updating cache...")
-  (mu4e-maildirs-extension-insert-summary))
+  (mu4e-message "Updating index & cache...")
+  (mu4e-update-index))
 
 (defun mu4e-maildirs-extension ()
   "Initialize."
