@@ -171,6 +171,7 @@ Insert the parent maildir name if ITEM has a different one from PREV."
   (mu4e-message "Updating index & cache...")
   (mu4e-update-index))
 
+;;;###autoload
 (defun mu4e-maildirs-extension ()
   "Initialize."
   (remove-hook 'mu4e-index-updated-hook mu4e-maildirs-extension-index-updated-func)
