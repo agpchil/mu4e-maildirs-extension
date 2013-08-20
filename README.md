@@ -8,8 +8,14 @@ To minimize performance issues this information is _cached_ until the index is c
 
 ![Screenshot](https://drive.google.com/uc?export=view&id=0Byv-S6nIE7oRVm85UGVxY3FqMUE)
 
-## Basic usage
+## Installation
+It's available on [MELPA](http://melpa.milkbox.net).
+```
+M-x package-install mu4e-maildirs-extension
+(mu4e-maildirs-extension)
+```
 
+Or you can copy `mu4e-maildirs-extension.el` file in your load path and add the following in your `~/.emacs` startup file:
 ```lisp
 (require 'mu4e-maildirs-extension)
 (mu4e-maildirs-extension)
