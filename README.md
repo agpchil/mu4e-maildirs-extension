@@ -8,6 +8,9 @@ To minimize performance issues this information is _cached_ until the index is c
 
 ![Screenshot](https://drive.google.com/uc?export=view&id=0Byv-S6nIE7oRVm85UGVxY3FqMUE)
 
+## Requirements
+This extension needs [mu4e](http://github.com/djcb/mu) version 0.9.9.5 or newer to work.
+
 ## Installation
 It's available on [MELPA](http://melpa.milkbox.net).
 ```
