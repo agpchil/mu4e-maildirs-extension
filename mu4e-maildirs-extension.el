@@ -78,7 +78,10 @@
 
 (defun mu4e-maildirs-extension-count-mails ()
   "Count mails in maildirs."
-  (let ((maildirs (mu4e-get-maildirs))
+  (let ((maildirs
+        (if (boundp 'mu4e-maildir-custom-list)
+            mu4e-maildir-custom-list
+          (mu4e-get-maildirs)))
         (mdir nil)
         (total 0)
         (unread 0)
