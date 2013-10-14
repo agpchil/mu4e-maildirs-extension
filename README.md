@@ -67,3 +67,12 @@ The left separators `»` and `|` can be changed with:
 (setq mu4e-maildirs-extension-maildir-separator "\n\t» ")
 (setq mu4e-maildirs-extension-submaildir-separator "\t  | ")
 ```
+
+### Custom list of folders
+
+If you do not want all folders listed, you can specify a custom list of folders using the variable `mu4e-maildirs-extension-custom-list`.
+
+```lisp
+(setq mu4e-maildirs-extension-custom-list
+  '( "/account1/INBOX" "/account2/INBOX" ))
+```
