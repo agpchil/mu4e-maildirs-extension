@@ -45,6 +45,7 @@
 (defvar mu4e-maildirs-extension-buffer-name mu4e~main-buffer-name)
 (defvar mu4e-maildirs-extension-count-command-format
   "mu find %s maildir:'%s' --fields 'i' 2>/dev/null |wc -l |tr -d '\n'")
+(defvar mu4e-maildirs-extension-custom-list nil)
 (defvar mu4e-maildirs-extension-index-updated-func
   'mu4e-maildirs-extension-index-updated-handler)
 (defvar mu4e-maildirs-extension-main-view-func
@@ -79,8 +80,8 @@
 (defun mu4e-maildirs-extension-count-mails ()
   "Count mails in maildirs."
   (let ((maildirs
-        (if (boundp 'mu4e-maildir-custom-list)
-            mu4e-maildir-custom-list
+        (if mu4e-maildirs-extension-custom-list
+            mu4e-maildirs-extension-custom-list
           (mu4e-get-maildirs)))
         (mdir nil)
         (total 0)
