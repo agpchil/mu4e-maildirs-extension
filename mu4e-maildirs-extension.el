@@ -51,7 +51,7 @@
 (defvar mu4e-maildirs-extension-main-view-func
   'mu4e-maildirs-extension-main-view-handler)
 
-(defface mu4e-maildirs-extension-header-face
+(defface mu4e-maildirs-extension-maildir-face
   '((t :inherit mu4e-header-face))
   "Face for a normal maildir"
   :group 'mu4e-maildir-extension-faces)
@@ -119,7 +119,7 @@ ITEM is an alist with the following structure
     (propertize (format "%s (%s/%s)\n" name (number-to-string unread) total) 'face
                 (cond
                  ((> unread 0) 'mu4e-maildirs-extension-unread-face)
-                 (t            'mu4e-maildirs-extension-header-face)))))
+                 (t            'mu4e-maildirs-extension-maildir-face)))))
 
 (defun mu4e-maildirs-extension-insert-item (item prev)
   "Insert ITEM.
