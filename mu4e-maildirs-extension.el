@@ -51,14 +51,12 @@
 (defvar mu4e-maildirs-extension-main-view-func
   'mu4e-maildirs-extension-main-view-handler)
 
+(defvar mu4e-maildirs-extension-propertize-func
+  'mu4e-maildirs-extension-propertize-handler)
+
 (defface mu4e-maildirs-extension-maildir-face
   '((t :inherit mu4e-header-face))
   "Face for a normal maildir"
-  :group 'mu4e-maildir-extension-faces)
-
-(defface mu4e-maildirs-extension-unread-face
-  '((t :inherit mu4e-view-header-key-face))
-  "Face for the active 'unread' part of the maildir line"
   :group 'mu4e-maildir-extension-faces)
 
 (defface mu4e-maildirs-extension-maildir-unread-face
@@ -108,30 +106,27 @@
       (setq result (cons `(,mdir (,unread ,total)) result)))
     (reverse result)))
 
-(defun mu4e-maildirs-extension-propertize (item)
-  "Propertize ITEM.
-ITEM is an alist with the following structure
-'(maildir_name (unread_count total_count))."
-  (let ((name (car item))
-        (unread (car (cadr item)))
-        (total (cadr (cadr item))))
+(defun mu4e-maildirs-extension-get-name (item)
+  "Return the name of the maildir from ITEM list."
+  (let ((name (car item)))
+    (if (mu4e-maildirs-extension-get-parent-name name)
+        (replace-regexp-in-string "^/[^/]*" "" name)
+      name)))
 
-    (setq name (if (mu4e-maildirs-extension-get-parent-name name)
-                   (concat mu4e-maildirs-extension-submaildir-separator
-                           (replace-regexp-in-string "^/[^/]*" "" name))
-                 (concat mu4e-maildirs-extension-submaildir-separator name)))
+(defun mu4e-maildirs-extension-get-unread (item)
+  "Return the unread count from ITEM list."
+  (car (cadr item)))
 
-    (let ((unread-face
-           (cond
-            ((> unread 0) 'mu4e-maildirs-extension-unread-face)
-            (t            'mu4e-maildirs-extension-maildir-face)))
-          (maildir-face
-           (cond
-            ((> unread 0) 'mu4e-maildirs-extension-maildir-unread-face)
-            (t            'mu4e-maildirs-extension-maildir-face))))
-      (concat (propertize (format "%s (" name total) 'face maildir-face)
-              (propertize (number-to-string unread)  'face unread-face)
-              (propertize (format "/%s)\n"  total)   'face maildir-face)))))
+(defun mu4e-maildirs-extension-get-total (item)
+  "Return the total count from ITEM list."
+  (cadr (cadr item)))
+
+(defun mu4e-maildirs-extension-propertize-handler (separator name unread total)
+  "Propertize the maildir text using SEPARATOR, NAME, UNREAD and TOTAL."
+  (propertize (format "%s%s (%s/%s)\n" separator name unread total)
+              'face (cond
+                     ((> unread 0) 'mu4e-maildirs-extension-maildir-unread-face)
+                     (t            'mu4e-maildirs-extension-maildir-face))))
 
 (defun mu4e-maildirs-extension-insert-item (item prev)
   "Insert ITEM.
@@ -150,7 +145,11 @@ Insert the parent maildir name if ITEM has a different one from PREV."
      (insert (concat mu4e-maildirs-extension-maildir-separator parent-name "\n")))
 
     (insert
-     (mu4e~main-action-str (mu4e-maildirs-extension-propertize item)
+     (mu4e~main-action-str (funcall mu4e-maildirs-extension-propertize-func
+                                    mu4e-maildirs-extension-submaildir-separator
+                                    (mu4e-maildirs-extension-get-name item)
+                                    (mu4e-maildirs-extension-get-unread item)
+                                    (mu4e-maildirs-extension-get-total item))
                            `(lambda ()
                               (interactive)
                               (mu4e~headers-jump-to-maildir ,(car item)))))))
