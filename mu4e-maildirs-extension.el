@@ -57,6 +57,11 @@
   :group 'mu4e-maildir-extension-faces)
 
 (defface mu4e-maildirs-extension-unread-face
+  '((t :inherit mu4e-view-header-key-face))
+  "Face for the active 'unread' part of the maildir line"
+  :group 'mu4e-maildir-extension-faces)
+
+(defface mu4e-maildirs-extension-maildir-unread-face
   '((t :inherit mu4e-unread-face))
   "Face for a maildir containing unread items"
   :group 'mu4e-maildir-extension-faces)
@@ -116,10 +121,17 @@ ITEM is an alist with the following structure
                            (replace-regexp-in-string "^/[^/]*" "" name))
                  (concat mu4e-maildirs-extension-submaildir-separator name)))
 
-    (propertize (format "%s (%s/%s)\n" name (number-to-string unread) total) 'face
-                (cond
-                 ((> unread 0) 'mu4e-maildirs-extension-unread-face)
-                 (t            'mu4e-maildirs-extension-maildir-face)))))
+    (let ((unread-face
+           (cond
+            ((> unread 0) 'mu4e-maildirs-extension-unread-face)
+            (t            'mu4e-maildirs-extension-maildir-face)))
+          (maildir-face
+           (cond
+            ((> unread 0) 'mu4e-maildirs-extension-maildir-unread-face)
+            (t            'mu4e-maildirs-extension-maildir-face))))
+      (concat (propertize (format "%s (" name total) 'face maildir-face)
+              (propertize (number-to-string unread)  'face unread-face)
+              (propertize (format "/%s)\n"  total)   'face maildir-face)))))
 
 (defun mu4e-maildirs-extension-insert-item (item prev)
   "Insert ITEM.
