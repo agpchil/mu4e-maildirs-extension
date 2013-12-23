@@ -43,6 +43,8 @@
 (defvar mu4e-maildirs-extension-insert-before-str "\n  Misc")
 (defvar mu4e-maildirs-extension-cached-maildirs-count nil)
 (defvar mu4e-maildirs-extension-buffer-name mu4e~main-buffer-name)
+(defvar mu4e-maildirs-extension-action-text "\t* [u]pdate index & cache\n")
+(defvar mu4e-maildirs-extension-action-key "u")
 (defvar mu4e-maildirs-extension-count-command-format
   "mu find %s maildir:'%s' --fields 'i' 2>/dev/null |wc -l |tr -d '\n'")
 (defvar mu4e-maildirs-extension-custom-list nil)
@@ -179,8 +181,11 @@ Insert the parent maildir name if ITEM has a different one from PREV."
                 (propertize mu4e-maildirs-extension-title 'face 'mu4e-title-face))
 
         (insert "\n"
-                (mu4e~main-action-str "\t* [u]pdate index & cache\n" "u"))
-        (define-key mu4e-main-mode-map "u" 'mu4e-maildirs-extension-insert-summary-no-cache)
+                (mu4e~main-action-str mu4e-maildirs-extension-action-text
+                                      mu4e-maildirs-extension-action-key))
+        (define-key mu4e-main-mode-map
+          mu4e-maildirs-extension-action-key
+          'mu4e-maildirs-extension-insert-summary-no-cache)
 
         (dolist (item maildirs)
           (mu4e-maildirs-extension-insert-item item prev)
