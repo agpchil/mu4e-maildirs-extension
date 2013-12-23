@@ -76,3 +76,36 @@ If you do not want all folders listed, you can specify a custom list of folders 
 (setq mu4e-maildirs-extension-custom-list
   '( "/account1/INBOX" "/account2/INBOX" ))
 ```
+
+### Faces
+
+You can change the faces of `mu4e-maildirs-extension-maildir-face` and `mu4e-maildirs-extension-maildir-unread-face`. By default this faces inherit from `mu4e`.
+
+### Action text and key
+
+The default action text and key can be changed with:
+
+```lisp
+(setq mu4e-maildirs-extension-action-text "\t* [u]pdate index & cache\n")
+(setq mu4e-maildirs-extension-action-key "u")
+```
+
+### Maildirs info
+
+The default format `| maildir_name (unread/total)` can be customized providing your own function. For example, to highlight only the unread count you could use something like this:
+
+```lisp
+(defun my/mu4e-maildirs-extension-propertize-unread-only (separator name unread total)
+  (format "%s%s (%s/%s)\n"
+          separator
+          name
+          (propertize (number-to-string unread)
+                      'face
+                      (cond ((> unread 0)
+                             'mu4e-maildirs-extension-maildir-unread-face)
+                            (t
+                             'mu4e-maildirs-extension-maildir-face)))
+          total))
+
+(setq mu4e-maildirs-extension-propertize-func 'my/mu4e-maildirs-extension-propertize-unread-only)
+```
