@@ -109,3 +109,31 @@ The default format `| maildir_name (unread/total)` can be customized providing y
 
 (setq mu4e-maildirs-extension-propertize-func 'my/mu4e-maildirs-extension-propertize-unread-only)
 ```
+
+### Single Account Mode
+
+If you only have one account in your `mu4e-maildir` directory, you can set single account mode on:
+
+```lisp
+(setq mu4e-maildirs-extension-single-account-mode t)
+```
+
+Now custom folders, set via `mu4e-maildirs-extension-custom-list`, can be referenced without an account qualification as:
+
+```lisp
+(setq mu4e-maildirs-extension-custom-list
+      '("/INBOX" 
+        "/[Gmail].All Mail" 
+        "/[Gmail].Starred" 
+        "/[Gmail].Important" ))
+```
+
+Setting `(setq mu4e-maildirs-extension-submaildir-separator "\t+ ")` will render the folders without indent as:
+
+```
+	* [u]pdate index & cache
+	+ /INBOX (14/82)
+	+ /[Gmail].All Mail (16/9074)
+	+ /[Gmail].Starred (0/1)
+	+ /[Gmail].Important (6/35)
+```
