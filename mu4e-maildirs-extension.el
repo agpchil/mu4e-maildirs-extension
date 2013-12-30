@@ -148,7 +148,7 @@ Insert the parent maildir name if ITEM has a different one from PREV."
             ((setf (car item) (concat "/" parent-name (car item))))))
 
     (when (and (not (equal prev-parent-name parent-name))
-              (not mu4e-maildirs-extension-single-account-separator-written))
+               (not mu4e-maildirs-extension-single-account-separator-written))
       (insert (concat mu4e-maildirs-extension-maildir-separator 
                       parent-name 
                       "\n")))
