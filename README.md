@@ -127,3 +127,13 @@ Now custom folders, set via `mu4e-maildirs-extension-custom-list`, can be refere
         "/[Gmail].Starred" 
         "/[Gmail].Important" ))
 ```
+
+Setting `(setq mu4e-maildirs-extension-submaildir-separator "\t+ ")` will render the folders without indent as:
+
+```
+	* [u]pdate index & cache
+	+ /INBOX (14/82)
+	+ /[Gmail].All Mail (16/9074)
+	+ /[Gmail].Starred (0/1)
+	+ /[Gmail].Important (6/35)
+```
