@@ -39,7 +39,6 @@
 (defvar mu4e-maildirs-extension-title "  Maildirs\n")
 (defvar mu4e-maildirs-extension-undefined-maildir-name "default account")
 (defvar mu4e-maildirs-extension-single-account-mode nil)
-(defvar mu4e-maildirs-extension-single-account-separator-written nil)
 (defvar mu4e-maildirs-extension-maildir-separator "\n\t» ")
 (defvar mu4e-maildirs-extension-submaildir-separator "\t  | ")
 (defvar mu4e-maildirs-extension-insert-before-str "\n  Misc")
@@ -148,13 +147,10 @@ Insert the parent maildir name if ITEM has a different one from PREV."
             ((setf (car item) (concat "/" parent-name (car item))))))
 
     (when (and (not (equal prev-parent-name parent-name))
-               (not mu4e-maildirs-extension-single-account-separator-written))
+               (not mu4e-maildirs-extension-single-account-mode))
       (insert (concat mu4e-maildirs-extension-maildir-separator 
                       parent-name 
                       "\n")))
-
-    (if mu4e-maildirs-extension-single-account-mode
-        (setf mu4e-maildirs-extension-single-account-separator-written t))
 
     (insert
      (mu4e~main-action-str (funcall mu4e-maildirs-extension-propertize-func
