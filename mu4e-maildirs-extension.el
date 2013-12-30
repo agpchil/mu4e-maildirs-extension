@@ -139,12 +139,17 @@ Insert the parent maildir name if ITEM has a different one from PREV."
   (let ((parent-name (mu4e-maildirs-extension-get-parent-name (car item)))
         (prev-parent-name (mu4e-maildirs-extension-get-parent-name (car prev))))
 
-    (unless parent-name
-      (setq parent-name mu4e-maildirs-extension-undefined-maildir-name)
-      (setf (car item) (concat "/" parent-name (car item))))
+    (setq parent-name (cond ((and parent-name
+                                  (not (equal prev-parent-name parent-name)))
+                             parent-name)
+                            ((and (not parent-name)
+                                  (or (not prev)
+                                      (not (equal prev-parent-name parent-name))))
+                             mu4e-maildirs-extension-undefined-maildir-name)))
 
-    (when (not (equal prev-parent-name parent-name))
-     (insert (concat mu4e-maildirs-extension-maildir-separator parent-name "\n")))
+    (when parent-name
+      (insert (concat mu4e-maildirs-extension-maildir-separator
+                      parent-name "\n")))
 
     (insert
      (mu4e~main-action-str (funcall mu4e-maildirs-extension-propertize-func
