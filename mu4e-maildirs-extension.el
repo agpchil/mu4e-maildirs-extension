@@ -38,7 +38,7 @@
 (defvar mu4e-maildirs-extension-end-point nil)
 (defvar mu4e-maildirs-extension-title "  Maildirs\n")
 (defvar mu4e-maildirs-extension-undefined-maildir-name "default account")
-(defvar mu4e-maildirs-extension-single-account-mode t)
+(defvar mu4e-maildirs-extension-single-account-mode nil)
 (defvar mu4e-maildirs-extension-single-account-separator-written nil)
 (defvar mu4e-maildirs-extension-maildir-separator "\n\t» ")
 (defvar mu4e-maildirs-extension-submaildir-separator "\t  | ")
