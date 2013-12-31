@@ -43,39 +43,23 @@ Pop3 configurations usually have `{cur,new,tmp}` directly in `account1/` but you
 
 ## Customize
 
+If the extension has been loaded, simply call `M-x customize-group` and type `mu4e-maildirs-extension`.  Here are a few of the more common customizations. 
+
 ### Title
 
-The default label is `Maildirs` but it can be changed with:
-
-```lisp
-(setq mu4e-maildirs-extension-title "  Maildirs\n"
-```
+The default label is `Maildirs` but it can be changed with `mu4e-maildirs-extension-title`.
 
 ### Position
 
-The variable `mu4e-maildirs-extension-insert-before-str` is used to control where the maildirs summary should be inserted. It can be changed with:
-
-```lisp
-(setq mu4e-maildirs-extension-insert-before-str "\n  Misc")
-```
+The variable `mu4e-maildirs-extension-insert-before-str` is used to control where the maildirs summary should be inserted. The valid options are `Basics`, `Bookmarks`, and `Misc`.
 
 ### Separators
 
-The left separators `»` and `|` can be changed with:
-
-```lisp
-(setq mu4e-maildirs-extension-maildir-separator "\n\t» ")
-(setq mu4e-maildirs-extension-submaildir-separator "\t  | ")
-```
+The left separators `»` and `|` can be changed with `mu4e-maildirs-extension-maildir-separator` and `mu4e-maildirs-extension-submaildir-separator` respectively. 
 
 ### Custom list of folders
 
 If you do not want all folders listed, you can specify a custom list of folders using the variable `mu4e-maildirs-extension-custom-list`.
-
-```lisp
-(setq mu4e-maildirs-extension-custom-list
-  '( "/account1/INBOX" "/account2/INBOX" ))
-```
 
 ### Faces
 
@@ -83,16 +67,11 @@ You can change the faces of `mu4e-maildirs-extension-maildir-face` and `mu4e-mai
 
 ### Action text and key
 
-The default action text and key can be changed with:
-
-```lisp
-(setq mu4e-maildirs-extension-action-text "\t* [u]pdate index & cache\n")
-(setq mu4e-maildirs-extension-action-key "u")
-```
+The default action text and key can be changed with `mu4e-maildirs-extension-action-text` and `mu4e-maildirs-extension-action-key`.
 
 ### Maildirs info
 
-The default format `| maildir_name (unread/total)` can be customized providing your own function. For example, to highlight only the unread count you could use something like this:
+The default format `| maildir_name (unread/total)` can be customized providing your own function. For example, to highlight only the unread count you could use something like this in your `.emacs`:
 
 ```lisp
 (defun my/mu4e-maildirs-extension-propertize-unread-only (separator name unread total)
@@ -106,6 +85,6 @@ The default format `| maildir_name (unread/total)` can be customized providing y
                             (t
                              'mu4e-maildirs-extension-maildir-face)))
           total))
-
-(setq mu4e-maildirs-extension-propertize-func 'my/mu4e-maildirs-extension-propertize-unread-only)
 ```
+
+Then set `mu4e-maildirs-extension-propertize-func` to `my/mu4e-maildirs-extension-propertize-unread-only` in the `customize-group` area.
