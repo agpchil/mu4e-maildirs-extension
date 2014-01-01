@@ -46,7 +46,7 @@ total mails for each maildir."
   :group 'mu4e-maildirs-extension
   :type '(key-sequence))
 
-(defcustom mu4e-maildirs-extension-action-text "\t* [u]pdate index & cache"
+(defcustom mu4e-maildirs-extension-action-text "\t* [u]pdate index & cache\n"
   "*Action text to display for updating the index and cache."
   :group 'mu4e-maildirs-extension
   :type '(string))
