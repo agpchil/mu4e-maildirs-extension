@@ -68,23 +68,25 @@ You can change the faces of `mu4e-maildirs-extension-maildir-face` and `mu4e-mai
 ### Action text and key
 
 The default action text and key can be changed with `mu4e-maildirs-extension-action-text` and `mu4e-maildirs-extension-action-key`.
+If `mu4e-maildirs-extension-action-text` is set to `nil` it won't be displayed.
 
 ### Maildirs info
 
 The default format `| maildir_name (unread/total)` can be customized providing your own function. For example, to highlight only the unread count you could use something like this in your `.emacs`:
 
 ```lisp
-(defun my/mu4e-maildirs-extension-propertize-unread-only (separator name unread total)
-  (format "%s%s (%s/%s)\n"
-          separator
-          name
-          (propertize (number-to-string unread)
-                      'face
-                      (cond ((> unread 0)
-                             'mu4e-maildirs-extension-maildir-unread-face)
-                            (t
-                             'mu4e-maildirs-extension-maildir-face)))
-          total))
+(defun my/mu4e-maildirs-extension-propertize-unread-only (item)
+  "Propertize only the maildir unread count using ITEM plist."
+  (format "%s\t%s%s %s (%s/%s)\n"
+          (if (equal (plist-get item :level) 0) "\n" "")
+          (plist-get item :indent)
+          (plist-get item :separator)
+          (plist-get item :name)
+          (propertize (number-to-string (plist-get item :unread))
+                      'face (cond
+                             ((> (plist-get item :unread) 0) 'mu4e-maildirs-extension-maildir-unread-face)
+                             (t            'mu4e-maildirs-extension-maildir-face)))
+          (plist-get item :total)))
 ```
 
 Then set `mu4e-maildirs-extension-propertize-func` to `my/mu4e-maildirs-extension-propertize-unread-only` in the `customize-group` area.
