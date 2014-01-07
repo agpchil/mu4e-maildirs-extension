@@ -35,67 +35,65 @@
 (require 'mu4e)
 
 (defgroup mu4e-maildirs-extension nil
-  "*Show mu4e maildirs summary in mu4e-main-view with unread and
+  "Show mu4e maildirs summary in mu4e-main-view with unread and
 total mails for each maildir."
   :link '(url-link "https://github.com/agpchil/mu4e-maildirs-extension")
   :prefix "mu4e-maildirs-extension-"
   :group 'external)
 
 (defcustom mu4e-maildirs-extension-action-key "u"
-  "*Action key command to update index and cache."
+  "Key shortcut to update index and cache."
   :group 'mu4e-maildirs-extension
   :type '(key-sequence))
 
 (defcustom mu4e-maildirs-extension-action-text "\t* [u]pdate index & cache\n"
-  "*Action text to display for updating the index and cache."
+  "Action text to display for updating the index and cache."
   :group 'mu4e-maildirs-extension
   :type '(string))
 
 (defcustom mu4e-maildirs-extension-count-command-format
   "mu find %s maildir:'%s' --fields 'i' 2>/dev/null |wc -l |tr -d '\n'"
-  "*The command to count a maildir.  [Most people won't need to edit this]"
+  "The command to count a maildir.  [Most people won't need to edit this]."
   :group 'mu4e-maildirs-extension
   :type '(string))
 
 (defcustom mu4e-maildirs-extension-custom-list nil
-  "*If you do not want all folders listed, you can specify a
-custom list of folders as unquoted strings like: /account1/INBOX
-/account2/Other INBOX"
+  "Custom list of folders to show."
   :group 'mu4e-maildirs-extension
   :type '(repeat string))
   ;; :type '(sexp))
 
 (defcustom mu4e-maildirs-extension-insert-before-str "\n  Misc"
-  "*The place where the maildirs summary should be inserted."
+  "The place where the maildirs summary should be inserted."
   :group 'mu4e-maildirs-extension
   :type '(choice (const :tag "Basics" "\n  Basics")
                  (const :tag "Bookmarks" "\n  Bookmarks")
                  (const :tag "Misc" "\n  Misc")))
 
 (defcustom mu4e-maildirs-extension-maildir-separator "\n\t» "
-  "*The seperator for each top-level mail direcotry."
+  "The separator for each top level mail direcotry."
   :group 'mu4e-maildirs-extension
   :type '(string))
 
 (defcustom mu4e-maildirs-extension-propertize-func
   #'mu4e-maildirs-extension-propertize-handler
-  "*The function call to format the maildir info. Default dispays
-as '| maildir_name (unread/total)'."
+  "The function to format the maildir info.
+Default dispays as '| maildir_name (unread/total)'."
   :group 'mu4e-maildirs-extension
   :type '(function))
 
 (defcustom mu4e-maildirs-extension-submaildir-separator "\t  | "
-  "*The seperator for each sub-level mail directory."
+  "The separator for each sub-level mail directory."
   :group 'mu4e-maildirs-extension
   :type '(string))
 
 (defcustom mu4e-maildirs-extension-title "  Maildirs\n"
-  "*The title label for the maildirs extension."
+  "The title label for the maildirs extension."
   :group 'mu4e-maildirs-extension
   :type '(string))
 
 (defcustom mu4e-maildirs-extension-undefined-maildir-name "default account"
-  "*The default account name if there is no specific directory."
+  "The default account name if there is no specific directory."
   :group 'mu4e-maildirs-extension
   :type '(string))
 
@@ -124,13 +122,13 @@ as '| maildir_name (unread/total)'."
   'mu4e-maildirs-extension-main-view-handler)
 
 (defun mu4e-maildirs-extension-index-updated-handler ()
-  "Handler for mu4e-index-updated-hook."
+  "Handler for `mu4e-index-updated-hook'."
   (setq mu4e-maildirs-extension-cached-maildirs-count nil)
   (when (equal (buffer-name) mu4e-maildirs-extension-buffer-name)
     (mu4e-maildirs-extension-insert-summary)))
 
 (defun mu4e-maildirs-extension-main-view-handler ()
-  "Handler for mu4e-main-view-mode-hook."
+  "Handler for `mu4e-main-view-mode-hook'."
   (setq mu4e-maildirs-extension-start-point nil)
   (mu4e-maildirs-extension-insert-summary))
 
@@ -219,7 +217,7 @@ Insert the parent maildir name if ITEM has a different one from PREV."
                               (mu4e~headers-jump-to-maildir ,(car item)))))))
 
 (defun mu4e-maildirs-extension-insert-summary ()
-  "Insert maildirs summary in mu4e-main-view."
+  "Insert maildirs summary in `mu4e-main-view'."
   (unless mu4e-maildirs-extension-cached-maildirs-count
     (setq mu4e-maildirs-extension-cached-maildirs-count
           (mu4e-maildirs-extension-count-mails)))
