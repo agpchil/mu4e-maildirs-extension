@@ -157,10 +157,10 @@ Given PATH \"/foo/bar/alpha\" will return '(\"/foo\" \"/bar\")."
         (view-maildirs nil)
         (path-history nil))
 
-    (mapcar '(lambda (name)
+    (mapc #'(lambda (name)
                (let ((parents (mu4e-maildirs-extension-get-parents name))
                      (path nil))
-                 (mapcar '(lambda (parent-name)
+                 (mapc #'(lambda (parent-name)
                             (setq path (concat path "/" parent-name))
                             (unless (assoc path path-history)
                               (add-to-list 'view-maildirs (format "%s/*" path))))
@@ -173,7 +173,7 @@ Given PATH \"/foo/bar/alpha\" will return '(\"/foo\" \"/bar\")."
 (defun mu4e-maildirs-extension-fetch ()
   "Fetch maildirs data."
   (let ((data nil))
-    (mapcar
+    (mapc
      #'(lambda (maildir)
          (let ((item nil)
                (level (length (mu4e-maildirs-extension-get-parents maildir)))
@@ -276,7 +276,7 @@ clicked."
           mu4e-maildirs-extension-action-key
           'mu4e-maildirs-extension-force-update)
 
-        (mapcar #'(lambda (item)
+        (mapc #'(lambda (item)
                     (insert (mu4e-maildirs-extension-action-str
                              (funcall mu4e-maildirs-extension-propertize-func item)
                              `(lambda ()
