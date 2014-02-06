@@ -13,7 +13,7 @@ This extension needs [mu4e](http://github.com/djcb/mu) version 0.9.9.5 or newer 
 
 ## Installation
 It's available on [MELPA](http://melpa.milkbox.net).
-```
+```lisp
 M-x package-install mu4e-maildirs-extension
 (mu4e-maildirs-extension)
 ```
@@ -41,7 +41,7 @@ account2/
 
 Pop3 configurations usually have `{cur,new,tmp}` directly in `account1/` but you should put them inside a submaildir to make this extension work (ex: `account1/inbox/{cur,new,tmp}`).
 
-## Customize
+## M-x customize
 
 If the extension has been loaded, simply call `M-x customize-group` and type `mu4e-maildirs-extension`.  Here are a few of the more common customizations. 
 
@@ -56,6 +56,10 @@ The variable `mu4e-maildirs-extension-insert-before-str` is used to control wher
 ### Separators
 
 The left separators `»` and `|` can be changed with `mu4e-maildirs-extension-maildir-separator` and `mu4e-maildirs-extension-submaildir-separator` respectively. 
+
+### Indent
+
+You can change the number of spaces to indent submaildirs with `mu4e-maildirs-extension-submaildir-indent`.
 
 ### Custom list of folders
 
