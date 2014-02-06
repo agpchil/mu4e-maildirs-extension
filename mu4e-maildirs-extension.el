@@ -98,11 +98,6 @@ Default dispays as '| maildir_name (unread/total)'."
   :group 'mu4e-maildirs-extension
   :type '(string))
 
-(defcustom mu4e-maildirs-extension-undefined-maildir-name "default account"
-  "The default account name if there is no specific directory."
-  :group 'mu4e-maildirs-extension
-  :type '(string))
-
 (defface mu4e-maildirs-extension-maildir-face
   '((t :inherit mu4e-header-face))
   "Face for a normal maildir."
