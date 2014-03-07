@@ -48,9 +48,9 @@ total mails for each maildir."
 
 (defcustom mu4e-maildirs-extension-action-text "\t* [u]pdate index & cache\n"
   "Action text to display for updating the index and cache.
-If set to nil it won't be displayed."
+If set to 'Don't Display (nil)' it won't be displayed."
   :group 'mu4e-maildirs-extension
-  :type '(string))
+  :type '(choice string (const :tag "Don't Display" nil)))
 
 (defcustom mu4e-maildirs-extension-count-command-format
   "mu find %s maildir:'%s' --fields 'i' 2>/dev/null |wc -l |tr -d '\n'"
