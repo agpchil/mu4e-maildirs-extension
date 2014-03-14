@@ -96,7 +96,7 @@ Default dispays as '| maildir_name (unread/total)'."
 (defcustom mu4e-maildirs-extension-title "  Maildirs\n"
   "The title label for the maildirs extension."
   :group 'mu4e-maildirs-extension
-  :type '(string))
+  :type '(choice string (const :tag "Don't Display" nil)))
 
 (defface mu4e-maildirs-extension-maildir-face
   '((t :inherit mu4e-header-face))
@@ -264,8 +264,9 @@ clicked."
 
         (goto-char mu4e-maildirs-extension-start-point)
 
-        (insert "\n"
-                (propertize mu4e-maildirs-extension-title 'face 'mu4e-title-face))
+        (when mu4e-maildirs-extension-title
+          (insert "\n"
+                  (propertize mu4e-maildirs-extension-title 'face 'mu4e-title-face)))
 
         (when mu4e-maildirs-extension-action-text
           (insert "\n"

@@ -48,6 +48,7 @@ If the extension has been loaded, simply call `M-x customize-group` and type `mu
 ### Title
 
 The default label is `Maildirs` but it can be changed with `mu4e-maildirs-extension-title`.
+If `mu4e-maildirs-extension-title` is set to `nil` it won't be displayed.
 
 ### Position
 
