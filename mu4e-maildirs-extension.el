@@ -124,9 +124,10 @@ Default dispays as '| maildir_name (unread/total)'."
 
 (defun mu4e-maildirs-extension-index-updated-handler ()
   "Handler for `mu4e-index-updated-hook'."
-  (setq mu4e-maildirs-extension-cached-maildirs-data nil)
-  (when (equal (buffer-name) mu4e-maildirs-extension-buffer-name)
-    (mu4e-maildirs-extension-update)))
+  (let ((arg (if (get-buffer-window mu4e-maildirs-extension-buffer-name)
+                 '(16)
+               '(4))))
+    (mu4e-maildirs-extension-force-update arg)))
 
 (defun mu4e-maildirs-extension-main-view-handler ()
   "Handler for `mu4e-main-view-mode-hook'."
