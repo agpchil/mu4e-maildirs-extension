@@ -4,7 +4,10 @@ This extension adds a maildir summary in `mu4e-main-view`.
 
 It gets the list of maildirs and runs a `mu` command for each maildir to count unread and total mails.
 
-To minimize performance issues this information is _cached_ until the index is changed (using `mu4e-index-updated-hook`) and its not rebuilt until `mu4e-main-view` is called (or if `mu4e-main-view` is `current-buffer`). Also, the cache can be updated by pressing `u` in `mu4e-main-view` or updating the index with `U`.
+To minimize performance issues this information is _cached_ until the index is changed (using `mu4e-index-updated-hook`) and its not rebuilt until `mu4e-main-view` is called (or if `mu4e-main-view` buffer is visible). The following key-bindings are added in `mu4e-main-view`:
+- `u` Update the index
+- `C-u u` only clear the cache
+- `C-u C-u u` clear the cache and refresh.
 
 ![Screenshot](https://drive.google.com/uc?export=view&id=0Byv-S6nIE7oRVm85UGVxY3FqMUE)
 
@@ -43,7 +46,7 @@ Pop3 configurations usually have `{cur,new,tmp}` directly in `account1/` but you
 
 ## M-x customize
 
-If the extension has been loaded, simply call `M-x customize-group` and type `mu4e-maildirs-extension`.  Here are a few of the more common customizations. 
+If the extension has been loaded, simply call `M-x customize-group` and type `mu4e-maildirs-extension`.  Here are a few of the more common customizations.
 
 ### Title
 
@@ -56,7 +59,7 @@ The variable `mu4e-maildirs-extension-insert-before-str` is used to control wher
 
 ### Separators
 
-The left separators `»` and `|` can be changed with `mu4e-maildirs-extension-maildir-separator` and `mu4e-maildirs-extension-submaildir-separator` respectively. 
+The left separators `»` and `|` can be changed with `mu4e-maildirs-extension-maildir-separator` and `mu4e-maildirs-extension-submaildir-separator` respectively.
 
 ### Indent
 
@@ -95,3 +98,15 @@ The default format `| maildir_name (unread/total)` can be customized providing y
 ```
 
 Then set `mu4e-maildirs-extension-propertize-func` to `my/mu4e-maildirs-extension-propertize-unread-only` in the `customize-group` area.
+
+## Update index outside emacs
+
+If you update the index outside emacs (by calling `mu` directly) you will need to update the `mu4e-main-view` using `C-u C-u u` or calling `(mu4e-maildirs-extension-force-update '(16))`
+
+
+## Changelog
+
+Short summary of changes
+
+- Auto-update `mu4e-main-view` if the index have changed and the buffer is visible.
+- Use universal argument to be able to manually clear the cache and refresh (`C-u u` and `C-u C-u u`)
