@@ -124,9 +124,10 @@ Default dispays as '| maildir_name (unread/total)'."
 
 (defun mu4e-maildirs-extension-index-updated-handler ()
   "Handler for `mu4e-index-updated-hook'."
-  (setq mu4e-maildirs-extension-cached-maildirs-data nil)
-  (when (equal (buffer-name) mu4e-maildirs-extension-buffer-name)
-    (mu4e-maildirs-extension-update)))
+  (let ((arg (if (get-buffer-window mu4e-maildirs-extension-buffer-name)
+                 '(16)
+               '(4))))
+    (mu4e-maildirs-extension-force-update arg)))
 
 (defun mu4e-maildirs-extension-main-view-handler ()
   "Handler for `mu4e-main-view-mode-hook'."
@@ -288,11 +289,20 @@ clicked."
         (setq mu4e-maildirs-extension-end-point (point))
         (goto-char (point-min))))))
 
-(defun mu4e-maildirs-extension-force-update ()
-  "Clear cache and insert maildirs summary."
-  (interactive)
-  (mu4e-message "Updating index & cache...")
-  (mu4e-update-index))
+(defun mu4e-maildirs-extension-force-update (&optional universal-arg)
+  "Force update cache and summary.
+Default behaviour calls `mu4e-update-index' and update cache/summary if needed.
+When preceded with `universal-argument':
+4 = clears the cache,
+16 = clears the cache and update the summary."
+  (interactive "P")
+  (cond ((equal universal-arg nil)
+         (mu4e-update-index))
+        ((equal universal-arg '(4))
+         (setq mu4e-maildirs-extension-cached-maildirs-data nil))
+        ((equal universal-arg '(16))
+         (setq mu4e-maildirs-extension-cached-maildirs-data nil)
+         (mu4e-maildirs-extension-update))))
 
 ;;;###autoload
 (defun mu4e-maildirs-extension ()
