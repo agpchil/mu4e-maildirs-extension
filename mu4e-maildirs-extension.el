@@ -147,38 +147,50 @@ Default dispays as '| maildir_name (unread/total)'."
 (defun mu4e-maildirs-extension-get-parents (path)
   "Get the maildir parents of maildir PATH name.
 Given PATH \"/foo/bar/alpha\" will return '(\"/foo\" \"/bar\")."
-  (setq path (replace-regexp-in-string "^/" "" path))
-  (setq path (replace-regexp-in-string "\\/\\*$" "" path))
-  (butlast (split-string path "/" t)))
+  (let ((name (replace-regexp-in-string "^/" "" path)))
+    (setq name (replace-regexp-in-string "\\/\\*$" "" name))
+    (butlast (split-string name "/" t))))
 
 (defun mu4e-maildirs-extension-get-maildirs ()
   "Get maildirs."
   (let ((maildirs (or mu4e-maildirs-extension-custom-list
                       (mu4e-get-maildirs)))
-        (view-maildirs nil)
-        (path-history nil))
+        (maildirs-to-show nil))
 
     (mapc #'(lambda (name)
                (let ((parents (mu4e-maildirs-extension-get-parents name))
                      (path nil))
                  (mapc #'(lambda (parent-name)
                             (setq path (concat path "/" parent-name))
-                            (unless (assoc path path-history)
-                              (add-to-list 'view-maildirs (format "%s/*" path))))
+                            (unless (member path maildirs-to-show)
+                              (add-to-list 'maildirs-to-show (format "%s/*" path) t)))
                          parents))
 
-               (add-to-list 'view-maildirs name))
+               (add-to-list 'maildirs-to-show name t))
             maildirs)
-    (reverse view-maildirs)))
+    maildirs-to-show))
+
+(defun mu4e-maildirs-extension-is-parent-p (name maildirs)
+  "Check if NAME is a parent maildir from MAILDIRS."
+  (let ((found (string-match "\\/\\*$" name))
+        (items maildirs)
+        (it (car maildirs)))
+    (while (and it (not found))
+      (setq found (when (not (equal name it))
+                    (string-match name it)))
+      (setq items (cdr items))
+      (setq it (car items)))
+    found))
 
 (defun mu4e-maildirs-extension-fetch ()
   "Fetch maildirs data."
-  (let ((data nil))
+  (let ((data nil)
+        (maildirs (mu4e-maildirs-extension-get-maildirs)))
     (mapc
      #'(lambda (maildir)
          (let ((item nil)
                (level (length (mu4e-maildirs-extension-get-parents maildir)))
-               (is-parent-p (string-match "\\/\\*$" maildir)))
+               (is-parent-p (mu4e-maildirs-extension-is-parent-p maildir maildirs)))
            (setq item (plist-put item
                                  :name
                                  (car (reverse (split-string (replace-regexp-in-string
@@ -205,7 +217,7 @@ Given PATH \"/foo/bar/alpha\" will return '(\"/foo\" \"/bar\")."
                                  :unread
                                  (mu4e-maildirs-extension-execute-count maildir "flag:unread")))
            (add-to-list 'data item)))
-     (mu4e-maildirs-extension-get-maildirs))
+     maildirs)
     (reverse data)))
 
 (defun mu4e-maildirs-extension-propertize-handler (item)
