@@ -93,6 +93,20 @@ If set to 'Don't Display (nil)' it won't be displayed."
   :group 'mu4e-maildirs-extension
   :type '(set string function symbol variable))
 
+(defcustom mu4e-maildirs-extension-node-hl-symbols
+  '(all)
+  "List of symbols to highlight when `mu4e-maildirs-extension-node-hl-pred' matches."
+  :group 'mu4e-maildirs-extension
+  :type '(choice (list (const :tag "All" all))
+                 (set symbol)))
+
+(defcustom mu4e-maildirs-extension-node-hl-pred
+  '(lambda(m)
+     (> (or (plist-get m :unread) 0) 0))
+  "Predicate function used to highlight."
+  :group 'mu4e-maildirs-extension
+  :type '(function))
+
 (defcustom mu4e-maildirs-extension-before-insert-node-hook
   '(mu4e-maildirs-extension-insert-newline-when-root-node)
   "Hook called before inserting a node."
@@ -316,17 +330,25 @@ Given PATH \"/foo/bar/alpha\" will return '(\"/foo\" \"/bar\")."
 
 (defun mu4e-maildirs-extension-propertize-handler (m)
   "Propertize the maildir text using M plist."
-  (propertize (mapconcat #'identity
-                         (mapcar #'(lambda(sym)
-                                     (cond ((stringp sym) sym)
-                                           ((keywordp sym) (plist-get m sym))
-                                           ((fboundp sym) (funcall sym m))
-                                           (t (symbol-name sym))))
-                                 mu4e-maildirs-extension-node-format)
-                         "")
-              'face (cond
-                     ((> (or (plist-get m :unread) 0) 0) 'mu4e-maildirs-extension-node-unread-face)
-                     (t            'mu4e-maildirs-extension-node-face))))
+  (propertize
+   (mapconcat #'identity
+              (mapcar #'(lambda(sym)
+                          (let ((hl-symbols mu4e-maildirs-extension-node-hl-symbols)
+                                (hl-func mu4e-maildirs-extension-node-hl-pred)
+                                (s (cond ((stringp sym) sym)
+                                         ((keywordp sym) (plist-get m sym))
+                                         ((fboundp sym) (funcall sym m))
+                                         (t (symbol-name sym)))))
+                            (propertize (format "%s" s)
+                                        'face
+                                        (cond ((and (or (member 'all hl-symbols)
+                                                        (member sym hl-symbols))
+                                                    (funcall hl-func m))
+                                               'mu4e-maildirs-extension-node-unread-face)
+                                              (t
+                                               'mu4e-maildirs-extension-node-face)))))
+                      mu4e-maildirs-extension-node-format)
+              "")))
 
 (defun mu4e-maildirs-extension-load-nodes ()
   "Fetch data or load from cache."
@@ -379,16 +401,16 @@ clicked."
                          (mu4e-maildirs-extension-insert-node m)))))
     (unless count
       (mu4e-maildirs-extension-fetch path flags callback))
-    (and (numberp count)
-         (number-to-string count))))
+    (when (numberp count)
+      (number-to-string count))))
 
 (defun mu4e-maildirs-extension-count-total (m)
   "Fetch total count of M."
-  (mu4e-maildirs-extension-count m :total ""))
+  (or (mu4e-maildirs-extension-count m :total "") ""))
 
 (defun mu4e-maildirs-extension-count-unread (m)
   "Fetch unread count of M."
-  (mu4e-maildirs-extension-count m :unread "flag:unread"))
+  (or (mu4e-maildirs-extension-count m :unread "flag:unread") ""))
 
 (defun mu4e-maildirs-extension-insert-node (m)
   "Insert maildir entry into mu4e main view."
