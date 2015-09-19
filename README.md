@@ -2,12 +2,8 @@
 
 This extension adds a maildir summary in `mu4e-main-view`.
 
-It gets the list of maildirs and runs a `mu` command for each maildir to count unread and total mails.
+It gets the list of maildirs and runs a `mu` command async for each maildir to count unread and total mails. To minimize performance issues this information is _cached_.
 
-To minimize performance issues this information is _cached_ until the index is changed (using `mu4e-index-updated-hook`) and its not rebuilt until `mu4e-main-view` is called (or if `mu4e-main-view` buffer is visible). The following key-bindings are added in `mu4e-main-view`:
-- `u` Update the index
-- `C-u u` only clear the cache
-- `C-u C-u u` clear the cache and refresh.
 
 ![Screenshot](https://drive.google.com/uc?export=view&id=0Byv-S6nIE7oRVm85UGVxY3FqMUE)
 
@@ -27,66 +23,118 @@ Or you can copy `mu4e-maildirs-extension.el` file in your load path and add the 
 (mu4e-maildirs-extension)
 ```
 
-## Directory structure
+## Keybindings
 
-This extension expects the following maildir structure in `mu4e-maildir` directory:
-
-```
-account1/
-  submaildir1/
-  submaildir2/
-  ...
-account2/
-  submaildir1/
-  submaildir2/
-  ...
-```
-
-Pop3 configurations usually have `{cur,new,tmp}` directly in `account1/` but you should put them inside a submaildir to make this extension work (ex: `account1/inbox/{cur,new,tmp}`).
+The following key-bindings are added in `mu4e-main-view`:
+- `u` Update the index
+- `C-u u` only clear the cache
+- `C-u C-u u` clear the cache and refresh.
+- `SPC` Collapse/Expand node at point.
+- `C-u SPC` Collapse/Expand node at point and its children.
 
 ## M-x customize
 
-If the extension has been loaded, simply call `M-x customize-group` and type `mu4e-maildirs-extension`.  Here are a few of the more common customizations.
+If the extension has been loaded, simply call `M-x customize-group` and type `mu4e-maildirs-extension`.
 
-### Title
+### mu4e-maildirs-extension-action-key
 
-The default label is `Maildirs` but it can be changed with `mu4e-maildirs-extension-title`.
-If `mu4e-maildirs-extension-title` is set to `nil` it won't be displayed.
+Key shortcut to update index and cache.
 
-### Position
+### mu4e-maildirs-extension-toggle-node-key
 
-The variable `mu4e-maildirs-extension-insert-before-str` is used to control where the maildirs summary should be inserted. The valid options are `Basics`, `Bookmarks`, and `Misc`.
+Key shortcut to expand/collapse node at point.
 
-### Separators
+### mu4e-maildirs-extension-action-text
 
-The left separators `»` and `|` can be changed with `mu4e-maildirs-extension-maildir-separator` and `mu4e-maildirs-extension-submaildir-separator` respectively.
+Action text to display for updating the index and cache.
+If set to 'Don't Display (nil)' it won't be displayed.
 
-### Indent
+### mu4e-maildirs-extension-count-command-format
 
-You can change the number of spaces to indent submaildirs with `mu4e-maildirs-extension-submaildir-indent`.
+The command to count a maildir.  [Most people won't need to edit this].
 
-### Custom list of folders
+### mu4e-maildirs-extension-custom-list
 
-If you do not want all folders listed, you can specify a custom list of folders using the variable `mu4e-maildirs-extension-custom-list`.
+Custom list of folders to show.
 
-### Faces
+### mu4e-maildirs-extension-insert-before-str
 
-You can change the faces of `mu4e-maildirs-extension-maildir-face` and `mu4e-maildirs-extension-maildir-unread-face`. By default this faces inherit from `mu4e`.
+The place where the maildirs section should be inserted. The valid options are `Basics`, `Bookmarks`, `Misc` and `End of file`.
 
-### Action text and key
+### mu4e-maildirs-extension-node-format
 
-The default action text and key can be changed with `mu4e-maildirs-extension-action-text` and `mu4e-maildirs-extension-action-key`.
-If `mu4e-maildirs-extension-action-text` is set to `nil` it won't be displayed.
+The node format.
 
-### Maildirs info
+### mu4e-maildirs-extension-before-insert-node-hook
 
-The default format `| maildir_name (unread/total)` can be customized providing your own function. For example, to highlight only the unread count you could use something like this in your `.emacs`:
+Hook called before inserting a node.
+
+### mu4e-maildirs-extension-after-insert-node-hook
+
+Hook called after inserting a node.
+
+### mu4e-maildirs-extension-propertize-func
+
+The function to format the maildir info.
+Default dispays as '| maildir_name (unread/total)'.
+
+### mu4e-maildirs-extension-node-indent
+
+Node indentation.
+
+### mu4e-maildirs-extension-node-indent-char
+
+The char used for indentation.
+
+### mu4e-maildirs-extension-default-collapse-level
+
+The default level to collapse nodes.
+Set `nil' to disable.
+
+### mu4e-maildirs-extension-node-collapsed-prefix
+
+The prefix for collapsed node.
+
+### mu4e-maildirs-extension-node-expanded-prefix
+
+The prefix for expanded node.
+
+### mu4e-maildirs-extension-node-default-prefix
+
+The prefix for default node.
+
+### mu4e-maildirs-extension-fake-maildir-separator
+
+The separator to fake a hierarchy using directory names.
+For example:
+/Archive
+/Archive.foo
+/Archive.foo.bar
+/Archive.baz
+
+Offlineimap does this when setting `sep = .'.
+
+### mu4e-maildirs-extension-node-face
+
+Face for a normal node.
+
+### mu4e-maildirs-extension-node-unread-face
+
+Face for a node containing unread items.
+
+### mu4e-maildirs-extension-parallel-processes
+
+Max parallel processes.
+
+
+## Write your own node format handler
+
+If you need more customization you can change the default format `| maildir_name (unread/total)` providing your own function. For example, to highlight only the unread count you could use something like this in your `.emacs`:
 
 ```lisp
 (defun my/mu4e-maildirs-extension-propertize-unread-only (item)
   "Propertize only the maildir unread count using ITEM plist."
-  (format "%s\t%s%s %s (%s/%s)\n"
-          (if (equal (plist-get item :level) 0) "\n" "")
+  (format "\t%s%s %s (%s/%s)"
           (plist-get item :indent)
           (plist-get item :separator)
           (plist-get item :name)
@@ -106,7 +154,13 @@ If you update the index outside emacs (by calling `mu` directly) you will need t
 
 ## Changelog
 
-Short summary of changes
+Short summary of changes:
 
-- Auto-update `mu4e-main-view` if the index have changed and the buffer is visible.
-- Use universal argument to be able to manually clear the cache and refresh (`C-u u` and `C-u C-u u`)
+v0.9 (breaking changes):
+    - Update variables to make customizations easier.
+    - Allow nodes at point to collapse/expand.
+    - Add async support
+
+v0.8:
+    - Auto-update `mu4e-main-view` if the index have changed and the buffer is visible.
+    - Use universal argument to be able to manually clear the cache and refresh (`C-u u` and `C-u C-u u`)

@@ -71,7 +71,7 @@ If set to 'Don't Display (nil)' it won't be displayed."
   ;; :type '(sexp))
 
 (defcustom mu4e-maildirs-extension-insert-before-str "\n  Misc"
-  "The place where the maildirs summary should be inserted."
+  "The place where the maildirs section should be inserted."
   :group 'mu4e-maildirs-extension
   :type '(choice (const :tag "Basics" "\n  Basics")
                  (const :tag "Bookmarks" "\n  Bookmarks")
@@ -156,7 +156,8 @@ Offlineimap does this when setting `sep = .'."
   :type '(string))
 
 (defcustom mu4e-maildirs-extension-title "  Maildirs\n"
-  "The title label for the maildirs extension."
+  "The title for the maildirs extension section.
+If set to `nil' it won't be displayed."
   :group 'mu4e-maildirs-extension
   :type '(choice string (const :tag "Don't Display" nil)))
 
