@@ -478,7 +478,7 @@ clicked."
     (mu4e-maildirs-extension-with-buffer
       (set-marker marker (point-at-bol)))
     (setq m (--first (equal (plist-get it :marker) marker) l))
-    (let ((c (mu4e-maildirs-extension-children m l)))
+    (let ((c (when m (mu4e-maildirs-extension-children m l))))
       (when (and m c)
         (setq m (plist-put m :expand (not (plist-get m :expand))))
         (when universal-arg
