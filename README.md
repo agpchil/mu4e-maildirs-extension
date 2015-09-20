@@ -29,8 +29,8 @@ The following key-bindings are added in `mu4e-main-view`:
 - `u` Update the index
 - `C-u u` only clear the cache
 - `C-u C-u u` clear the cache and refresh.
-- `SPC` Collapse/Expand node at point.
-- `C-u SPC` Collapse/Expand node at point and its children.
+- `SPC` Collapse/Expand maildir at point.
+- `C-u SPC` Collapse/Expand maildir at point and its children.
 
 ## M-x customize
 
@@ -40,14 +40,18 @@ If the extension has been loaded, simply call `M-x customize-group` and type `mu
 
 Key shortcut to update index and cache.
 
-### mu4e-maildirs-extension-toggle-node-key
-
-Key shortcut to expand/collapse node at point.
-
 ### mu4e-maildirs-extension-action-text
 
 Action text to display for updating the index and cache.
 If set to 'Don't Display (nil)' it won't be displayed.
+
+### mu4e-maildirs-extension-after-insert-maildir-hook
+
+Hook called after inserting a maildir.
+
+### mu4e-maildirs-extension-before-insert-maildir-hook
+
+Hook called before inserting a maildir.
 
 ### mu4e-maildirs-extension-count-command-format
 
@@ -57,51 +61,10 @@ The command to count a maildir.  [Most people won't need to edit this].
 
 Custom list of folders to show.
 
-### mu4e-maildirs-extension-insert-before-str
-
-The place where the maildirs section should be inserted. The valid options are `Basics`, `Bookmarks`, `Misc` and `End of file`.
-
-### mu4e-maildirs-extension-node-format
-
-The node format.
-
-### mu4e-maildirs-extension-before-insert-node-hook
-
-Hook called before inserting a node.
-
-### mu4e-maildirs-extension-after-insert-node-hook
-
-Hook called after inserting a node.
-
-### mu4e-maildirs-extension-propertize-func
-
-The function to format the maildir info.
-Default dispays as '| maildir_name (unread/total)'.
-
-### mu4e-maildirs-extension-node-indent
-
-Node indentation.
-
-### mu4e-maildirs-extension-node-indent-char
-
-The char used for indentation.
-
 ### mu4e-maildirs-extension-default-collapse-level
 
-The default level to collapse nodes.
+The default level to collapse maildirs.
 Set `nil' to disable.
-
-### mu4e-maildirs-extension-node-collapsed-prefix
-
-The prefix for collapsed node.
-
-### mu4e-maildirs-extension-node-expanded-prefix
-
-The prefix for expanded node.
-
-### mu4e-maildirs-extension-node-default-prefix
-
-The prefix for default node.
 
 ### mu4e-maildirs-extension-fake-maildir-separator
 
@@ -114,20 +77,69 @@ For example:
 
 Offlineimap does this when setting `sep = .'.
 
-### mu4e-maildirs-extension-node-face
+### mu4e-maildirs-extension-insert-before-str
 
-Face for a normal node.
+The place where the maildirs section should be inserted.
 
-### mu4e-maildirs-extension-node-unread-face
+### mu4e-maildirs-extension-maildir-collapsed-prefix
 
-Face for a node containing unread items.
+The prefix for collapsed maildir.
+
+### mu4e-maildirs-extension-maildir-default-prefix
+
+The prefix for default maildir.
+
+### mu4e-maildirs-extension-maildir-expanded-prefix
+
+The prefix for expanded maildir.
+
+### mu4e-maildirs-extension-maildir-format
+
+The maildir format.
+
+### mu4e-maildirs-extension-maildir-hl-pred
+
+Predicate function used to highlight.
+
+### mu4e-maildirs-extension-maildir-hl-symbols
+
+List of symbols to highlight when `mu4e-maildirs-extension-maildir-hl-pred' matches.
+
+### mu4e-maildirs-extension-maildir-indent
+
+Maildir indentation.
+
+### mu4e-maildirs-extension-maildir-indent-char
+
+The char used for indentation.
 
 ### mu4e-maildirs-extension-parallel-processes
 
 Max parallel processes.
 
+### mu4e-maildirs-extension-propertize-func
 
-## Write your own node format handler
+The function to format the maildir info.
+Default dispays as '| maildir_name (unread/total)'.
+
+### mu4e-maildirs-extension-title
+
+The title for the maildirs extension section.
+If set to `nil' it won't be displayed.
+
+### mu4e-maildirs-extension-toggle-maildir-key
+
+Key shortcut to expand/collapse maildir at point.
+
+### mu4e-maildirs-extension-maildir-face
+
+Face for a normal maildir.
+
+### mu4e-maildirs-extension-maildir-hl-face
+
+Face for a highlighted maildir.
+
+## Write your own maildir format handler
 
 If you need more customization you can change the default format `| maildir_name (unread/total)` providing your own function. For example, to highlight only the unread count you could use something like this in your `.emacs`:
 
@@ -157,8 +169,9 @@ If you update the index outside emacs (by calling `mu` directly) you will need t
 Short summary of changes:
 
 v0.9 (breaking changes):
+    - Add new highlight options.
     - Update variables to make customizations easier.
-    - Allow nodes at point to collapse/expand.
+    - Allow maildirs at point to collapse/expand.
     - Add async support
 
 v0.8:
