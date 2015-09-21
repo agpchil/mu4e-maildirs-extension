@@ -11,6 +11,7 @@
 ;; Description: Show mu4e maildirs summary in mu4e-main-view with unread and
 ;; total mails for each maildir
 ;; URL: http://github.com/agpchil/mu4e-maildirs-extension
+;; Package-Requires: ((dash "0.0.0"))
 
 ;; This file is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
