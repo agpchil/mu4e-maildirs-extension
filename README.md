@@ -168,9 +168,28 @@ If you update the index outside emacs (by calling `mu` directly) you will need t
 
 Short summary of changes:
 
-v0.9 (breaking changes):
+v0.9:
+    - Improve customizations.
     - Add new highlight options.
-    - Update variables to make customizations easier.
+    - Add -load/-unload functions
+    - Rename variables (old -> new):
+      - mu4e-maildirs-extension-submaildir-indent -> mu4e-maildirs-extension-maildir-indent
+      - mu4e-maildirs-extension-maildir-separator -> mu4e-maildirs-extension-maildir-collapsed-prefix
+      - mu4e-maildirs-extension-submaildir-separator -> mu4e-maildirs-extension-maildir-default-prefix
+      - mu4e-maildirs-extension-maildir-unread-face -> mu4e-maildirs-extension-maildir-hl-face
+      - mu4e-maildirs-extension-cached-maildirs-data -> mu4e-maildirs-extension-maildirs
+    - Add new variables:
+      - mu4e-maildirs-extension-maildir-format
+      - mu4e-maildirs-extension-maildir-format-spec
+      - mu4e-maildirs-extension-maildir-hl-regex
+      - mu4e-maildirs-extension-maildir-hl-pred
+      - mu4e-maildirs-extension-before-insert-maildir-hook
+      - mu4e-maildirs-extension-after-insert-maildir-hook
+      - mu4e-maildirs-extension-maildir-indent-char
+      - mu4e-maildirs-extension-default-collapse-level
+      - mu4e-maildirs-extension-maildir-expanded-prefix
+      - mu4e-maildirs-extension-fake-maildir-separator
+      - mu4e-maildirs-extension-parallel-processes
     - Allow maildirs at point to collapse/expand.
     - Add async support
 
