@@ -79,27 +79,30 @@ If set to 'Don't Display (nil)' it won't be displayed."
                  (const :tag "Misc" "\n  Misc")
                  (const :tag "End of file" "\n")))
 
-(defcustom mu4e-maildirs-extension-maildir-format
-  '("\t"
-    :indent
-    mu4e-maildirs-extension-maildir-prefix
-    " "
-    :name
-    " ("
-    mu4e-maildirs-extension-count-unread
-    "/"
-    mu4e-maildirs-extension-count-total
-    ")")
+(defcustom mu4e-maildirs-extension-maildir-format "\t%i%p %n (%u/%t)"
   "The maildir format."
   :group 'mu4e-maildirs-extension
-  :type '(set string function symbol variable))
+  :type '(string))
 
-(defcustom mu4e-maildirs-extension-maildir-hl-symbols
-  '(all)
-  "List of symbols to highlight when `mu4e-maildirs-extension-maildir-hl-pred' matches."
+(defcustom mu4e-maildirs-extension-maildir-format-spec
+  '(lambda(m)
+     (list (cons ?i (plist-get m :indent))
+           (cons ?p (plist-get m :prefix))
+           (cons ?l (plist-get m :level))
+           (cons ?e (plist-get m :expand))
+           (cons ?P (plist-get m :path))
+           (cons ?n (plist-get m :name))
+           (cons ?u (or (plist-get m :unread) ""))
+           (cons ?t (or (plist-get m :total) ""))))
+  "A function to build the maildir format spec."
   :group 'mu4e-maildirs-extension
-  :type '(choice (list (const :tag "All" all))
-                 (set symbol)))
+  :type '(function))
+
+(defcustom mu4e-maildirs-extension-maildir-hl-regex
+  mu4e-maildirs-extension-maildir-format
+  "Regex to highlight when `mu4e-maildirs-extension-maildir-hl-pred' matches."
+  :group 'mu4e-maildirs-extension
+  :type '(string))
 
 (defcustom mu4e-maildirs-extension-maildir-hl-pred
   '(lambda(m)
@@ -115,7 +118,9 @@ If set to 'Don't Display (nil)' it won't be displayed."
   :type 'hook)
 
 (defcustom mu4e-maildirs-extension-after-insert-maildir-hook
-  '(mu4e-maildirs-extension-insert-newline)
+  '(mu4e-maildirs-extension-insert-newline
+    mu4e-maildirs-extension-count-unread
+    mu4e-maildirs-extension-count-total)
   "Hook called after inserting a maildir."
   :group 'mu4e-maildirs-extension
   :type 'hook)
@@ -319,46 +324,39 @@ Given PATH \"/foo/bar/alpha\" will return '(\"/foo\" \"/bar\")."
           paths)
     paths-to-show))
 
-(defun mu4e-maildirs-extension-maildir-prefix (m)
+(defun mu4e-maildirs-extension-update-maildir-prefix (m)
   "Get the prefix of maildir M."
   (let* ((l mu4e-maildirs-extension-maildirs)
-         (children (mu4e-maildirs-extension-children m l)))
-    (cond ((and children (plist-get m :expand))
-           mu4e-maildirs-extension-maildir-expanded-prefix)
-          ((and children (not (plist-get m :expand)))
-           mu4e-maildirs-extension-maildir-collapsed-prefix)
-          (t mu4e-maildirs-extension-maildir-default-prefix))))
+         (children (mu4e-maildirs-extension-children m l))
+         (prefix nil))
+    (setq prefix (cond ((and children (plist-get m :expand))
+                        mu4e-maildirs-extension-maildir-expanded-prefix)
+                       ((and children (not (plist-get m :expand)))
+                        mu4e-maildirs-extension-maildir-collapsed-prefix)
+                       (t mu4e-maildirs-extension-maildir-default-prefix)))
+    (setq m (plist-put m :prefix prefix))
+    prefix))
 
 (defun mu4e-maildirs-extension-propertize-handler (m)
   "Propertize the maildir text using M plist."
-  (propertize
-   (mapconcat #'identity
-              (mapcar #'(lambda(sym)
-                          (let ((hl-symbols mu4e-maildirs-extension-maildir-hl-symbols)
-                                (hl-func mu4e-maildirs-extension-maildir-hl-pred)
-                                (s (cond ((stringp sym) sym)
-                                         ((keywordp sym) (plist-get m sym))
-                                         ((fboundp sym) (funcall sym m))
-                                         (t (symbol-name sym)))))
-                            (propertize (format "%s" s)
-                                        'face
-                                        (cond ((and (or (member 'all hl-symbols)
-                                                        (member sym hl-symbols))
-                                                    (funcall hl-func m))
-                                               'mu4e-maildirs-extension-maildir-hl-face)
-                                              (t
-                                               'mu4e-maildirs-extension-maildir-face)))))
-                      mu4e-maildirs-extension-maildir-format)
-              "")))
+  (let* ((fmt mu4e-maildirs-extension-maildir-format)
+         (hl-regex mu4e-maildirs-extension-maildir-hl-regex)
+         (hl-p (funcall mu4e-maildirs-extension-maildir-hl-pred m))
+         (m-face (if hl-p
+                     'mu4e-maildirs-extension-maildir-hl-face
+                   'mu4e-maildirs-extension-maildir-face)))
+    (setq fmt (replace-regexp-in-string hl-regex
+                                        (propertize hl-regex 'face m-face) fmt))
+    (format-spec fmt (funcall mu4e-maildirs-extension-maildir-format-spec m))))
 
 (defun mu4e-maildirs-extension-load-maildirs ()
   "Fetch data or load from cache."
   (unless mu4e-maildirs-extension-maildirs
     (let ((paths (mu4e-maildirs-extension-paths)))
       (setq mu4e-maildirs-extension-maildirs
-           (mapcar #'(lambda(p)
-                       (mu4e-maildirs-extension-new-maildir p))
-                   paths))))
+            (mapcar #'mu4e-maildirs-extension-new-maildir paths))))
+  (mapc #'mu4e-maildirs-extension-update-maildir-prefix
+        mu4e-maildirs-extension-maildirs)
   mu4e-maildirs-extension-maildirs)
 
 (defun mu4e-maildirs-extension-action-str (str &optional func-or-shortcut)
