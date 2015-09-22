@@ -366,12 +366,14 @@ Given PATH \"/foo/bar/alpha\" will return '(\"/foo\" \"/bar\")."
   "Propertize the maildir text using M plist."
   (let* ((fmt mu4e-maildirs-extension-maildir-format)
          (hl-regex mu4e-maildirs-extension-maildir-hl-regex)
-         (hl-p (funcall mu4e-maildirs-extension-maildir-hl-pred m))
-         (m-face (if hl-p
-                     'mu4e-maildirs-extension-maildir-hl-face
-                   'mu4e-maildirs-extension-maildir-face)))
-    (setq fmt (replace-regexp-in-string hl-regex
-                                        (propertize hl-regex 'face m-face) fmt))
+         (hl-p (funcall mu4e-maildirs-extension-maildir-hl-pred m)))
+    (setq fmt (propertize fmt 'face 'mu4e-maildirs-extension-maildir-face))
+    (when hl-p
+      (setq fmt (replace-regexp-in-string hl-regex
+                                          (propertize hl-regex
+                                                      'face
+                                                      'mu4e-maildirs-extension-maildir-hl-face)
+                                          fmt)))
     (format-spec fmt (funcall mu4e-maildirs-extension-maildir-format-spec m))))
 
 (defun mu4e-maildirs-extension-load-maildirs ()
