@@ -292,7 +292,7 @@ Each subdirectory is not a valid submaildir but a dir containing submaildirs."
                                             mu4e-maildirs-extension-maildirs))
          (prefix nil))
     (setq m (plist-put m :expand nil))
-    (setq prefix (mu4e-maildirs-extension-set-maildir-prefix m))
+    (setq prefix (mu4e-maildirs-extension-update-maildir-prefix m))
     (should (equal prefix mu4e-maildirs-extension-maildir-collapsed-prefix))))
 
 (ert-deftest mu4e-maildirs-extension-prefix/expanded ()
@@ -304,7 +304,7 @@ Each subdirectory is not a valid submaildir but a dir containing submaildirs."
                   path-list))
          (m (mu4e-maildirs-extension-member "/account1/*"
                                             mu4e-maildirs-extension-maildirs))
-         (prefix (mu4e-maildirs-extension-set-maildir-prefix m)))
+         (prefix (mu4e-maildirs-extension-update-maildir-prefix m)))
     (should (equal prefix mu4e-maildirs-extension-maildir-expanded-prefix))))
 
 (ert-deftest mu4e-maildirs-extension-prefix/default ()
@@ -316,7 +316,7 @@ Each subdirectory is not a valid submaildir but a dir containing submaildirs."
                   path-list))
          (m (mu4e-maildirs-extension-member "/account1/inbox"
                                             mu4e-maildirs-extension-maildirs))
-         (prefix (mu4e-maildirs-extension-set-maildir-prefix m)))
+         (prefix (mu4e-maildirs-extension-update-maildir-prefix m)))
     (should (equal prefix mu4e-maildirs-extension-maildir-default-prefix))))
 
 (provide 'mu4e-maildirs-extension-test)
