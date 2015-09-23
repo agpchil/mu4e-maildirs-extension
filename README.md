@@ -70,10 +70,12 @@ Set `nil' to disable.
 
 The separator to fake a hierarchy using directory names.
 For example:
+```
 /Archive
 /Archive.foo
 /Archive.foo.bar
 /Archive.baz
+```
 
 Offlineimap does this when setting `sep = .'.
 
@@ -168,31 +170,31 @@ If you update the index outside emacs (by calling `mu` directly) you will need t
 
 Short summary of changes:
 
-v0.9:
-    - Improve customizations.
-    - Add new highlight options.
-    - Add -load/-unload functions
-    - Rename variables (old -> new):
-      - mu4e-maildirs-extension-submaildir-indent -> mu4e-maildirs-extension-maildir-indent
-      - mu4e-maildirs-extension-maildir-separator -> mu4e-maildirs-extension-maildir-collapsed-prefix
-      - mu4e-maildirs-extension-submaildir-separator -> mu4e-maildirs-extension-maildir-default-prefix
-      - mu4e-maildirs-extension-maildir-unread-face -> mu4e-maildirs-extension-maildir-hl-face
-      - mu4e-maildirs-extension-cached-maildirs-data -> mu4e-maildirs-extension-maildirs
-    - Add new variables:
-      - mu4e-maildirs-extension-maildir-format
-      - mu4e-maildirs-extension-maildir-format-spec
-      - mu4e-maildirs-extension-maildir-hl-regex
-      - mu4e-maildirs-extension-maildir-hl-pred
-      - mu4e-maildirs-extension-before-insert-maildir-hook
-      - mu4e-maildirs-extension-after-insert-maildir-hook
-      - mu4e-maildirs-extension-maildir-indent-char
-      - mu4e-maildirs-extension-default-collapse-level
-      - mu4e-maildirs-extension-maildir-expanded-prefix
-      - mu4e-maildirs-extension-fake-maildir-separator
-      - mu4e-maildirs-extension-parallel-processes
-    - Allow maildirs at point to collapse/expand.
-    - Add async support
+* v0.9:
+  - Improve customizations.
+  - Add new highlight options.
+  - Add -load/-unload functions
+  - Rename variables (old -> new):
+    - mu4e-maildirs-extension-submaildir-indent -> mu4e-maildirs-extension-maildir-indent
+    - mu4e-maildirs-extension-maildir-separator -> mu4e-maildirs-extension-maildir-collapsed-prefix
+    - mu4e-maildirs-extension-submaildir-separator -> mu4e-maildirs-extension-maildir-default-prefix
+    - mu4e-maildirs-extension-maildir-unread-face -> mu4e-maildirs-extension-maildir-hl-face
+    - mu4e-maildirs-extension-cached-maildirs-data -> mu4e-maildirs-extension-maildirs
+  - Add new variables:
+    - mu4e-maildirs-extension-maildir-format
+    - mu4e-maildirs-extension-maildir-format-spec
+    - mu4e-maildirs-extension-maildir-hl-regex
+    - mu4e-maildirs-extension-maildir-hl-pred
+    - mu4e-maildirs-extension-before-insert-maildir-hook
+    - mu4e-maildirs-extension-after-insert-maildir-hook
+    - mu4e-maildirs-extension-maildir-indent-char
+    - mu4e-maildirs-extension-default-collapse-level
+    - mu4e-maildirs-extension-maildir-expanded-prefix
+    - mu4e-maildirs-extension-fake-maildir-separator
+    - mu4e-maildirs-extension-parallel-processes
+  - Allow maildirs at point to collapse/expand.
+  - Add async support
 
-v0.8:
-    - Auto-update `mu4e-main-view` if the index have changed and the buffer is visible.
-    - Use universal argument to be able to manually clear the cache and refresh (`C-u u` and `C-u C-u u`)
+* v0.8:
+  - Auto-update `mu4e-main-view` if the index have changed and the buffer is visible.
+  - Use universal argument to be able to manually clear the cache and refresh (`C-u u` and `C-u C-u u`)
