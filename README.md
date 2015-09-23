@@ -2,12 +2,8 @@
 
 This extension adds a maildir summary in `mu4e-main-view`.
 
-It gets the list of maildirs and runs a `mu` command for each maildir to count unread and total mails.
+It gets the list of maildirs and runs a `mu` command async for each maildir to count unread and total mails. To minimize performance issues this information is _cached_.
 
-To minimize performance issues this information is _cached_ until the index is changed (using `mu4e-index-updated-hook`) and its not rebuilt until `mu4e-main-view` is called (or if `mu4e-main-view` buffer is visible). The following key-bindings are added in `mu4e-main-view`:
-- `u` Update the index
-- `C-u u` only clear the cache
-- `C-u C-u u` clear the cache and refresh.
 
 ![Screenshot](https://drive.google.com/uc?export=view&id=0Byv-S6nIE7oRVm85UGVxY3FqMUE)
 
@@ -27,66 +23,132 @@ Or you can copy `mu4e-maildirs-extension.el` file in your load path and add the 
 (mu4e-maildirs-extension)
 ```
 
-## Directory structure
+## Keybindings
 
-This extension expects the following maildir structure in `mu4e-maildir` directory:
-
-```
-account1/
-  submaildir1/
-  submaildir2/
-  ...
-account2/
-  submaildir1/
-  submaildir2/
-  ...
-```
-
-Pop3 configurations usually have `{cur,new,tmp}` directly in `account1/` but you should put them inside a submaildir to make this extension work (ex: `account1/inbox/{cur,new,tmp}`).
+The following key-bindings are added in `mu4e-main-view`:
+- `u` Update the index
+- `C-u u` only clear the cache
+- `C-u C-u u` clear the cache and refresh.
+- `SPC` Collapse/Expand maildir at point.
+- `C-u SPC` Collapse/Expand maildir at point and its children.
 
 ## M-x customize
 
-If the extension has been loaded, simply call `M-x customize-group` and type `mu4e-maildirs-extension`.  Here are a few of the more common customizations.
+If the extension has been loaded, simply call `M-x customize-group` and type `mu4e-maildirs-extension`.
 
-### Title
+### mu4e-maildirs-extension-action-key
 
-The default label is `Maildirs` but it can be changed with `mu4e-maildirs-extension-title`.
-If `mu4e-maildirs-extension-title` is set to `nil` it won't be displayed.
+Key shortcut to update index and cache.
 
-### Position
+### mu4e-maildirs-extension-action-text
 
-The variable `mu4e-maildirs-extension-insert-before-str` is used to control where the maildirs summary should be inserted. The valid options are `Basics`, `Bookmarks`, and `Misc`.
+Action text to display for updating the index and cache.
+If set to 'Don't Display (nil)' it won't be displayed.
 
-### Separators
+### mu4e-maildirs-extension-after-insert-maildir-hook
 
-The left separators `»` and `|` can be changed with `mu4e-maildirs-extension-maildir-separator` and `mu4e-maildirs-extension-submaildir-separator` respectively.
+Hook called after inserting a maildir.
 
-### Indent
+### mu4e-maildirs-extension-before-insert-maildir-hook
 
-You can change the number of spaces to indent submaildirs with `mu4e-maildirs-extension-submaildir-indent`.
+Hook called before inserting a maildir.
 
-### Custom list of folders
+### mu4e-maildirs-extension-count-command-format
 
-If you do not want all folders listed, you can specify a custom list of folders using the variable `mu4e-maildirs-extension-custom-list`.
+The command to count a maildir.  [Most people won't need to edit this].
 
-### Faces
+### mu4e-maildirs-extension-custom-list
 
-You can change the faces of `mu4e-maildirs-extension-maildir-face` and `mu4e-maildirs-extension-maildir-unread-face`. By default this faces inherit from `mu4e`.
+Custom list of folders to show.
 
-### Action text and key
+### mu4e-maildirs-extension-default-collapse-level
 
-The default action text and key can be changed with `mu4e-maildirs-extension-action-text` and `mu4e-maildirs-extension-action-key`.
-If `mu4e-maildirs-extension-action-text` is set to `nil` it won't be displayed.
+The default level to collapse maildirs.
+Set `nil' to disable.
 
-### Maildirs info
+### mu4e-maildirs-extension-fake-maildir-separator
 
-The default format `| maildir_name (unread/total)` can be customized providing your own function. For example, to highlight only the unread count you could use something like this in your `.emacs`:
+The separator to fake a hierarchy using directory names.
+For example:
+```
+/Archive
+/Archive.foo
+/Archive.foo.bar
+/Archive.baz
+```
+
+Offlineimap does this when setting `sep = .'.
+
+### mu4e-maildirs-extension-insert-before-str
+
+The place where the maildirs section should be inserted.
+
+### mu4e-maildirs-extension-maildir-collapsed-prefix
+
+The prefix for collapsed maildir.
+
+### mu4e-maildirs-extension-maildir-default-prefix
+
+The prefix for default maildir.
+
+### mu4e-maildirs-extension-maildir-expanded-prefix
+
+The prefix for expanded maildir.
+
+### mu4e-maildirs-extension-maildir-format
+
+The maildir format.
+
+### mu4e-maildirs-extension-maildir-hl-pred
+
+Predicate function used to highlight.
+
+### mu4e-maildirs-extension-maildir-hl-symbols
+
+List of symbols to highlight when `mu4e-maildirs-extension-maildir-hl-pred' matches.
+
+### mu4e-maildirs-extension-maildir-indent
+
+Maildir indentation.
+
+### mu4e-maildirs-extension-maildir-indent-char
+
+The char used for indentation.
+
+### mu4e-maildirs-extension-parallel-processes
+
+Max parallel processes.
+
+### mu4e-maildirs-extension-propertize-func
+
+The function to format the maildir info.
+Default dispays as '| maildir_name (unread/total)'.
+
+### mu4e-maildirs-extension-title
+
+The title for the maildirs extension section.
+If set to `nil' it won't be displayed.
+
+### mu4e-maildirs-extension-toggle-maildir-key
+
+Key shortcut to expand/collapse maildir at point.
+
+### mu4e-maildirs-extension-maildir-face
+
+Face for a normal maildir.
+
+### mu4e-maildirs-extension-maildir-hl-face
+
+Face for a highlighted maildir.
+
+## Write your own maildir format handler
+
+If you need more customization you can change the default format `| maildir_name (unread/total)` providing your own function. For example, to highlight only the unread count you could use something like this in your `.emacs`:
 
 ```lisp
 (defun my/mu4e-maildirs-extension-propertize-unread-only (item)
   "Propertize only the maildir unread count using ITEM plist."
-  (format "%s\t%s%s %s (%s/%s)\n"
-          (if (equal (plist-get item :level) 0) "\n" "")
+  (format "\t%s%s %s (%s/%s)"
           (plist-get item :indent)
           (plist-get item :separator)
           (plist-get item :name)
@@ -106,7 +168,33 @@ If you update the index outside emacs (by calling `mu` directly) you will need t
 
 ## Changelog
 
-Short summary of changes
+Short summary of changes:
 
-- Auto-update `mu4e-main-view` if the index have changed and the buffer is visible.
-- Use universal argument to be able to manually clear the cache and refresh (`C-u u` and `C-u C-u u`)
+* v0.9:
+  - Improve customizations.
+  - Add new highlight options.
+  - Add -load/-unload functions
+  - Rename variables (old -> new):
+    - mu4e-maildirs-extension-submaildir-indent -> mu4e-maildirs-extension-maildir-indent
+    - mu4e-maildirs-extension-maildir-separator -> mu4e-maildirs-extension-maildir-collapsed-prefix
+    - mu4e-maildirs-extension-submaildir-separator -> mu4e-maildirs-extension-maildir-default-prefix
+    - mu4e-maildirs-extension-maildir-unread-face -> mu4e-maildirs-extension-maildir-hl-face
+    - mu4e-maildirs-extension-cached-maildirs-data -> mu4e-maildirs-extension-maildirs
+  - Add new variables:
+    - mu4e-maildirs-extension-maildir-format
+    - mu4e-maildirs-extension-maildir-format-spec
+    - mu4e-maildirs-extension-maildir-hl-regex
+    - mu4e-maildirs-extension-maildir-hl-pred
+    - mu4e-maildirs-extension-before-insert-maildir-hook
+    - mu4e-maildirs-extension-after-insert-maildir-hook
+    - mu4e-maildirs-extension-maildir-indent-char
+    - mu4e-maildirs-extension-default-collapse-level
+    - mu4e-maildirs-extension-maildir-expanded-prefix
+    - mu4e-maildirs-extension-fake-maildir-separator
+    - mu4e-maildirs-extension-parallel-processes
+  - Allow maildirs at point to collapse/expand.
+  - Add async support
+
+* v0.8:
+  - Auto-update `mu4e-main-view` if the index have changed and the buffer is visible.
+  - Use universal argument to be able to manually clear the cache and refresh (`C-u u` and `C-u C-u u`)

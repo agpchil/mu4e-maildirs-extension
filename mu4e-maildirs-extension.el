@@ -11,6 +11,7 @@
 ;; Description: Show mu4e maildirs summary in mu4e-main-view with unread and
 ;; total mails for each maildir
 ;; URL: http://github.com/agpchil/mu4e-maildirs-extension
+;; Package-Requires: ((dash "0.0.0"))
 
 ;; This file is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -33,6 +34,7 @@
 
 ;;; Code:
 (require 'mu4e)
+(require 'dash)
 
 (defgroup mu4e-maildirs-extension nil
   "Show mu4e maildirs summary in mu4e-main-view with unread and
@@ -43,6 +45,11 @@ total mails for each maildir."
 
 (defcustom mu4e-maildirs-extension-action-key "u"
   "Key shortcut to update index and cache."
+  :group 'mu4e-maildirs-extension
+  :type '(key-sequence))
+
+(defcustom mu4e-maildirs-extension-toggle-maildir-key (kbd "SPC")
+  "Key shortcut to expand/collapse maildir at point."
   :group 'mu4e-maildirs-extension
   :type '(key-sequence))
 
@@ -65,16 +72,58 @@ If set to 'Don't Display (nil)' it won't be displayed."
   ;; :type '(sexp))
 
 (defcustom mu4e-maildirs-extension-insert-before-str "\n  Misc"
-  "The place where the maildirs summary should be inserted."
+  "The place where the maildirs section should be inserted."
   :group 'mu4e-maildirs-extension
   :type '(choice (const :tag "Basics" "\n  Basics")
                  (const :tag "Bookmarks" "\n  Bookmarks")
-                 (const :tag "Misc" "\n  Misc")))
+                 (const :tag "Misc" "\n  Misc")
+                 (const :tag "End of file" "\n")))
 
-(defcustom mu4e-maildirs-extension-maildir-separator "+"
-  "The separator for each top level mail direcotry."
+(defcustom mu4e-maildirs-extension-maildir-format "\t%i%p %n (%u/%t)"
+  "The maildir format."
   :group 'mu4e-maildirs-extension
   :type '(string))
+
+(defcustom mu4e-maildirs-extension-maildir-format-spec
+  '(lambda(m)
+     (list (cons ?i (plist-get m :indent))
+           (cons ?p (plist-get m :prefix))
+           (cons ?l (plist-get m :level))
+           (cons ?e (plist-get m :expand))
+           (cons ?P (plist-get m :path))
+           (cons ?n (plist-get m :name))
+           (cons ?u (or (plist-get m :unread) ""))
+           (cons ?t (or (plist-get m :total) ""))))
+  "A function to build the maildir format spec."
+  :group 'mu4e-maildirs-extension
+  :type '(function))
+
+(defcustom mu4e-maildirs-extension-maildir-hl-regex
+  mu4e-maildirs-extension-maildir-format
+  "Regex to highlight when `mu4e-maildirs-extension-maildir-hl-pred' matches."
+  :group 'mu4e-maildirs-extension
+  :type '(string))
+
+(defcustom mu4e-maildirs-extension-maildir-hl-pred
+  '(lambda(m)
+     (> (or (plist-get m :unread) 0) 0))
+  "Predicate function used to highlight."
+  :group 'mu4e-maildirs-extension
+  :type '(function))
+
+(defcustom mu4e-maildirs-extension-before-insert-maildir-hook
+  '(mu4e-maildirs-extension-insert-newline-when-root-maildir)
+  "Hook called before inserting a maildir."
+  :group 'mu4e-maildirs-extension
+  :type 'hook)
+
+(defcustom mu4e-maildirs-extension-after-insert-maildir-hook
+  '(mu4e-maildirs-extension-insert-newline
+    mu4e-maildirs-extension-count-unread
+    mu4e-maildirs-extension-count-total)
+  "Hook called after inserting a maildir."
+  :group 'mu4e-maildirs-extension
+  :type 'hook)
 
 (defcustom mu4e-maildirs-extension-propertize-func
   #'mu4e-maildirs-extension-propertize-handler
@@ -83,18 +132,52 @@ Default dispays as '| maildir_name (unread/total)'."
   :group 'mu4e-maildirs-extension
   :type '(function))
 
-(defcustom mu4e-maildirs-extension-submaildir-indent 2
-  "Indentation of submaildirs."
+(defcustom mu4e-maildirs-extension-maildir-indent 2
+  "Maildir indentation."
   :group 'mu4e-maildirs-extension
   :type '(integer))
 
-(defcustom mu4e-maildirs-extension-submaildir-separator "|"
-  "The separator for each sub-level mail directory."
+(defcustom mu4e-maildirs-extension-maildir-indent-char " "
+  "The char used for indentation."
+  :group 'mu4e-maildirs-extension
+  :type '(integer))
+
+(defcustom mu4e-maildirs-extension-default-collapse-level nil
+  "The default level to collapse maildirs.
+Set `nil' to disable."
+  :group 'mu4e-maildirs-extension
+  :type '(choice integer nil))
+
+(defcustom mu4e-maildirs-extension-maildir-collapsed-prefix "+"
+  "The prefix for collapsed maildir."
+  :group 'mu4e-maildirs-extension
+  :type '(string))
+
+(defcustom mu4e-maildirs-extension-maildir-expanded-prefix "-"
+  "The prefix for expanded maildir."
+  :group 'mu4e-maildirs-extension
+  :type '(string))
+
+(defcustom mu4e-maildirs-extension-maildir-default-prefix "|"
+  "The prefix for default maildir."
+  :group 'mu4e-maildirs-extension
+  :type '(string))
+
+(defcustom mu4e-maildirs-extension-fake-maildir-separator nil
+  "The separator to fake a hierarchy using directory names.
+For example:
+/Archive
+/Archive.foo
+/Archive.foo.bar
+/Archive.baz
+
+Offlineimap does this when setting `sep = .'."
   :group 'mu4e-maildirs-extension
   :type '(string))
 
 (defcustom mu4e-maildirs-extension-title "  Maildirs\n"
-  "The title label for the maildirs extension."
+  "The title for the maildirs extension section.
+If set to `nil' it won't be displayed."
   :group 'mu4e-maildirs-extension
   :type '(choice string (const :tag "Don't Display" nil)))
 
@@ -103,16 +186,24 @@ Default dispays as '| maildir_name (unread/total)'."
   "Face for a normal maildir."
   :group 'mu4e-maildirs-extension)
 
-(defface mu4e-maildirs-extension-maildir-unread-face
+(defface mu4e-maildirs-extension-maildir-hl-face
   '((t :inherit mu4e-unread-face))
-  "Face for a maildir containing unread items."
+  "Face for a highlighted maildir."
   :group 'mu4e-maildirs-extension)
+
+(defcustom mu4e-maildirs-extension-parallel-processes 6
+  "Max parallel processes."
+  :group 'mu4e-maildirs-extension
+  :type '(integer))
+
+(defvar mu4e-maildirs-extension-running-processes 0)
+(defvar mu4e-maildirs-extension-queue nil)
 
 (defvar mu4e-maildirs-extension-start-point nil)
 
 (defvar mu4e-maildirs-extension-end-point nil)
 
-(defvar mu4e-maildirs-extension-cached-maildirs-data nil)
+(defvar mu4e-maildirs-extension-maildirs nil)
 
 (defvar mu4e-maildirs-extension-buffer-name mu4e~main-buffer-name)
 
@@ -121,6 +212,31 @@ Default dispays as '| maildir_name (unread/total)'."
 
 (defvar mu4e-maildirs-extension-main-view-func
   'mu4e-maildirs-extension-main-view-handler)
+
+(define-obsolete-variable-alias
+  'mu4e-maildirs-extension-submaildir-indent
+  'mu4e-maildirs-extension-maildir-indent
+  "0.9")
+
+(define-obsolete-variable-alias
+  'mu4e-maildirs-extension-maildir-separator
+  'mu4e-maildirs-extension-maildir-collapsed-prefix
+  "0.9")
+
+(define-obsolete-variable-alias
+  'mu4e-maildirs-extension-submaildir-separator
+  'mu4e-maildirs-extension-maildir-default-prefix
+  "0.9")
+
+(define-obsolete-variable-alias
+  'mu4e-maildirs-extension-maildir-unread-face
+  'mu4e-maildirs-extension-maildir-hl-face
+  "0.9")
+
+(define-obsolete-variable-alias
+  'mu4e-maildirs-extension-cached-maildirs-data
+  'mu4e-maildirs-extension-maildirs
+  "0.9")
 
 (defun mu4e-maildirs-extension-index-updated-handler ()
   "Handler for `mu4e-index-updated-hook'."
@@ -134,98 +250,141 @@ Default dispays as '| maildir_name (unread/total)'."
   (setq mu4e-maildirs-extension-start-point nil)
   (mu4e-maildirs-extension-update))
 
-(defun mu4e-maildirs-extension-execute-count (mdir &optional opts)
-  "Execute the count command for a MDIR with optional OPTS."
-  (let* ((mu-opts (if opts opts ""))
-         (cmd (format mu4e-maildirs-extension-count-command-format
-                      mu-opts
-                      mdir)))
-    (string-to-number (replace-regexp-in-string "![0-9]"
-                                                ""
-                                                (shell-command-to-string cmd)))))
+(defmacro mu4e-maildirs-extension-with-buffer (&rest body)
+  "Switch to `mu4e-maildirs-extension' buffer and yield BODY."
+  (declare (indent defun))
+  `(let* ((buffer (get-buffer mu4e-maildirs-extension-buffer-name))
+          (buffer-window (car (get-buffer-window-list buffer)))
+          (old-pos nil)
+          (inhibit-read-only t))
+     (when buffer
+       (cond (buffer-window
+              (with-selected-window buffer-window
+                (setq old-pos (point))
+                (save-excursion
+                  ,@body)
+                (unless (> old-pos (point-max))
+                  (goto-char old-pos))))
+             (t
+              (with-current-buffer buffer
+                (setq old-pos (point))
+                (save-excursion
+                  ,@body)
+                (unless (> old-pos (point-max))
+                  (goto-char old-pos))))))))
 
-(defun mu4e-maildirs-extension-get-parents (path)
+(defun mu4e-maildirs-extension-unqueue-maybe ()
+  (when (< mu4e-maildirs-extension-running-processes
+           mu4e-maildirs-extension-parallel-processes)
+    (let ((proc-func (pop mu4e-maildirs-extension-queue)))
+      (when proc-func
+        (funcall proc-func)
+        (setq mu4e-maildirs-extension-running-processes
+              (1+ mu4e-maildirs-extension-running-processes))))))
+
+(defun mu4e-maildirs-extension-fetch (mdir opts &optional callback)
+  "Fetch the result of executing the command for a MDIR with optional OPTS."
+  (let* ((cmd (format mu4e-maildirs-extension-count-command-format
+                      opts
+                      mdir))
+         (finish-func `(lambda(proc event)
+                         (when (and (equal event "finished\n")
+                                    (buffer-live-p (process-buffer proc))
+                                    ,callback)
+                           ;; (memq (process-status proc) '(exit))
+                           (let ((buffer (process-buffer proc))
+                                 (result nil))
+                             (with-current-buffer buffer
+                               (setq result (string-to-number
+                                             (replace-regexp-in-string "![0-9]"
+                                                                       ""
+                                                                       (buffer-string)))))
+                             (mu4e-maildirs-extension-with-buffer
+                              (funcall ,callback result))
+                             (kill-buffer buffer)
+                             (setq mu4e-maildirs-extension-running-processes
+                                   (1- mu4e-maildirs-extension-running-processes))
+                             (mu4e-maildirs-extension-unqueue-maybe)))))
+         (proc `(lambda()
+                  (let ((proc (start-process-shell-command "mu4e-maildirs-extension"
+                                                           (make-temp-name "mu4e-maildirs-extension")
+                                                           ,cmd)))
+                    (set-process-sentinel proc ,finish-func)))))
+
+    (add-to-list 'mu4e-maildirs-extension-queue proc t)
+    (mu4e-maildirs-extension-unqueue-maybe)))
+
+(defun mu4e-maildirs-extension-parse (path)
   "Get the maildir parents of maildir PATH name.
 Given PATH \"/foo/bar/alpha\" will return '(\"/foo\" \"/bar\")."
-  (setq path (replace-regexp-in-string "^/" "" path))
-  (setq path (replace-regexp-in-string "\\/\\*$" "" path))
-  (butlast (split-string path "/" t)))
+  (let ((name (replace-regexp-in-string "^/" "" path))
+        (parents nil)
+        (fake-sep mu4e-maildirs-extension-fake-maildir-separator)
+        (all-parents nil))
+    (setq name (replace-regexp-in-string "\\/\\*$" "" name))
+    (setq parents (split-string name "/" t))
+    (cond (mu4e-maildirs-extension-fake-maildir-separator
+           (mapc #'(lambda(s)
+                     (setq all-parents (append all-parents (split-string s fake-sep t))))
+                 parents))
+          (t (setq all-parents parents)))
+    all-parents))
 
-(defun mu4e-maildirs-extension-get-maildirs ()
-  "Get maildirs."
-  (let ((maildirs (or mu4e-maildirs-extension-custom-list
-                      (mu4e-get-maildirs)))
-        (view-maildirs nil)
-        (path-history nil))
+(defun mu4e-maildirs-extension-paths ()
+  "Get maildirs paths."
+  (let ((paths (or mu4e-maildirs-extension-custom-list
+                   (mu4e-get-maildirs)))
+        (paths-to-show nil))
 
     (mapc #'(lambda (name)
-               (let ((parents (mu4e-maildirs-extension-get-parents name))
-                     (path nil))
-                 (mapc #'(lambda (parent-name)
-                            (setq path (concat path "/" parent-name))
-                            (unless (assoc path path-history)
-                              (add-to-list 'view-maildirs (format "%s/*" path))))
-                         parents))
+              (let ((parents (butlast (mu4e-maildirs-extension-parse name)))
+                    (path nil))
+                (mapc #'(lambda (parent-name)
+                          (setq path (concat path "/" parent-name))
+                          (unless (member path paths-to-show)
+                            (add-to-list 'paths-to-show (format "%s/*" path) t)))
+                      parents))
 
-               (add-to-list 'view-maildirs name))
-            maildirs)
-    (reverse view-maildirs)))
+              (add-to-list 'paths-to-show name t))
+          paths)
+    paths-to-show))
 
-(defun mu4e-maildirs-extension-fetch ()
-  "Fetch maildirs data."
-  (let ((data nil))
-    (mapc
-     #'(lambda (maildir)
-         (let ((item nil)
-               (level (length (mu4e-maildirs-extension-get-parents maildir)))
-               (is-parent-p (string-match "\\/\\*$" maildir)))
-           (setq item (plist-put item
-                                 :name
-                                 (car (reverse (split-string (replace-regexp-in-string
-                                                              "\\/\\*$" "" maildir) "/")))))
-           (setq item (plist-put item
-                                 :level
-                                 level))
-           (setq item (plist-put item
-                                 :path
-                                 maildir))
-           (setq item (plist-put item
-                                 :separator
-                                 (if (or is-parent-p (equal level 0))
-                                     mu4e-maildirs-extension-maildir-separator
-                                   mu4e-maildirs-extension-submaildir-separator)))
-           (setq item (plist-put item
-                                 :indent
-                                 (make-string (* mu4e-maildirs-extension-submaildir-indent level)
-                                              32)))
-           (setq item (plist-put item
-                                 :total
-                                 (mu4e-maildirs-extension-execute-count maildir)))
-           (setq item (plist-put item
-                                 :unread
-                                 (mu4e-maildirs-extension-execute-count maildir "flag:unread")))
-           (add-to-list 'data item)))
-     (mu4e-maildirs-extension-get-maildirs))
-    (reverse data)))
+(defun mu4e-maildirs-extension-update-maildir-prefix (m)
+  "Get the prefix of maildir M."
+  (let* ((l mu4e-maildirs-extension-maildirs)
+         (children (mu4e-maildirs-extension-children m l))
+         (prefix nil))
+    (setq prefix (cond ((and children (plist-get m :expand))
+                        mu4e-maildirs-extension-maildir-expanded-prefix)
+                       ((and children (not (plist-get m :expand)))
+                        mu4e-maildirs-extension-maildir-collapsed-prefix)
+                       (t mu4e-maildirs-extension-maildir-default-prefix)))
+    (setq m (plist-put m :prefix prefix))
+    prefix))
 
-(defun mu4e-maildirs-extension-propertize-handler (item)
-  "Propertize the maildir text using ITEM plist."
-  (propertize (format "%s\t%s%s %s (%s/%s)\n"
-                      (if (equal (plist-get item :level) 0) "\n" "")
-                      (plist-get item :indent)
-                      (plist-get item :separator)
-                      (plist-get item :name)
-                      (plist-get item :unread)
-                      (plist-get item :total))
-              'face (cond
-                     ((> (plist-get item :unread) 0) 'mu4e-maildirs-extension-maildir-unread-face)
-                     (t            'mu4e-maildirs-extension-maildir-face))))
+(defun mu4e-maildirs-extension-propertize-handler (m)
+  "Propertize the maildir text using M plist."
+  (let* ((fmt mu4e-maildirs-extension-maildir-format)
+         (hl-regex mu4e-maildirs-extension-maildir-hl-regex)
+         (hl-p (funcall mu4e-maildirs-extension-maildir-hl-pred m)))
+    (setq fmt (propertize fmt 'face 'mu4e-maildirs-extension-maildir-face))
+    (when hl-p
+      (setq fmt (replace-regexp-in-string hl-regex
+                                          (propertize hl-regex
+                                                      'face
+                                                      'mu4e-maildirs-extension-maildir-hl-face)
+                                          fmt)))
+    (format-spec fmt (funcall mu4e-maildirs-extension-maildir-format-spec m))))
 
-(defun mu4e-maildirs-extension-fetch-maybe ()
-  "Fetch data if no cache."
-  (unless mu4e-maildirs-extension-cached-maildirs-data
-    (setq mu4e-maildirs-extension-cached-maildirs-data
-          (mu4e-maildirs-extension-fetch))))
+(defun mu4e-maildirs-extension-load-maildirs ()
+  "Fetch data or load from cache."
+  (unless mu4e-maildirs-extension-maildirs
+    (let ((paths (mu4e-maildirs-extension-paths)))
+      (setq mu4e-maildirs-extension-maildirs
+            (mapcar #'mu4e-maildirs-extension-new-maildir paths))))
+  (mapc #'mu4e-maildirs-extension-update-maildir-prefix
+        mu4e-maildirs-extension-maildirs)
+  mu4e-maildirs-extension-maildirs)
 
 (defun mu4e-maildirs-extension-action-str (str &optional func-or-shortcut)
   "Custom action without using [.] in STR.
@@ -248,46 +407,179 @@ clicked."
       (- (length newstr) 1) 'mouse-face 'highlight newstr)
     newstr))
 
+(defun mu4e-maildirs-extension-insert-newline-when-root-maildir (m)
+  "Insert a newline when M is a root maildir."
+  (when (equal (plist-get m :level) 0)
+    (insert "\n")))
+
+(defun mu4e-maildirs-extension-insert-newline (m)
+  "Insert a newline."
+  (insert "\n"))
+
+(defun mu4e-maildirs-extension-count (m key flags)
+  "Fetch count results using mu FLAGS and store result in M plist with KEY"
+  (let* ((path (plist-get m :path))
+         (count (plist-get m key))
+         (callback `(lambda(result)
+                       (let ((m (--first (equal (plist-get it :path) ,path)
+                                         mu4e-maildirs-extension-maildirs)))
+                         (setq m (plist-put m ,key result))
+                         (mu4e-maildirs-extension-insert-maildir m)))))
+    (unless count
+      (mu4e-maildirs-extension-fetch path flags callback))
+    (when (numberp count)
+      (number-to-string count))))
+
+(defun mu4e-maildirs-extension-count-total (m)
+  "Fetch total count of M."
+  (or (mu4e-maildirs-extension-count m :total "") ""))
+
+(defun mu4e-maildirs-extension-count-unread (m)
+  "Fetch unread count of M."
+  (or (mu4e-maildirs-extension-count m :unread "flag:unread") ""))
+
+(defun mu4e-maildirs-extension-insert-maildir (m)
+  "Insert maildir entry into mu4e main view."
+  (goto-char (plist-get m :marker))
+  (delete-region (point-at-bol) (point-at-eol))
+  (beginning-of-line)
+  (insert (mu4e-maildirs-extension-action-str
+           (funcall mu4e-maildirs-extension-propertize-func m)
+           `(lambda ()
+              (interactive)
+              (mu4e~headers-jump-to-maildir ,(plist-get m :path))))))
+
+(defun mu4e-maildirs-extension-new-maildir (path)
+  "Build new maildir plist from maildir PATH."
+  (let* ((m nil)
+         (current-maildirs (mu4e-maildirs-extension-parse path))
+         (level (1- (length current-maildirs))))
+    (setq m (plist-put m
+                       :name (car (last current-maildirs))))
+    (setq m (plist-put m
+                       :level
+                       level))
+    (setq m (plist-put m
+                       :expand (or (not mu4e-maildirs-extension-default-collapse-level)
+                                   (< level mu4e-maildirs-extension-default-collapse-level))))
+    (setq m (plist-put m
+                       :path
+                       path))
+    (setq m (plist-put m
+                       :indent
+                       (make-string (* mu4e-maildirs-extension-maildir-indent level)
+                                    (string-to-char mu4e-maildirs-extension-maildir-indent-char))))
+    (setq m (plist-put m
+                       :total
+                       nil))
+    (setq m (plist-put m
+                       :unread
+                       nil))
+    m))
+
+(defun mu4e-maildirs-extension-children (m l)
+  "Return a list of children of M."
+  (let* ((path (plist-get m :path))
+         (sane-path (replace-regexp-in-string "\\/\\*$" "" path)))
+    (-filter (lambda(it)
+               (let* ((it-path (plist-get it :path)))
+                 (and (not (equal it-path path))
+                      (string-match sane-path it-path))))
+             l)))
+
+(defun mu4e-maildirs-extension-roots (l)
+  "Return the list of root maildirs in L."
+  (--filter (= (plist-get it :level) 0) l))
+
+(defun mu4e-maildirs-extension-member (path l)
+  "Return the maildir with PATH in L."
+  (--first (string= (plist-get it :path) path) l))
+
+(defun mu4e-maildirs-extension-is-parent-of (a b)
+  "Return t if A is parent of B."
+  (let ((path-a (replace-regexp-in-string "\\/\\*$"
+                                          ""
+                                          (plist-get a :path)))
+        (path-b (replace-regexp-in-string "\\/\\*$"
+                                          ""
+                                          (plist-get b :path))))
+    (and (not (equal path-a path-b))
+         (string-match path-a path-b))))
+
+(defun mu4e-maildirs-extension-parents (m l)
+  "Return the list of parent maildirs of M in L."
+  (--filter (mu4e-maildirs-extension-is-parent-of it m) l))
+
+(defun mu4e-maildirs-extension-expanded (l)
+  "Return the list of expanded maildirs."
+  (-filter (lambda(m)
+             (let ((parents (mu4e-maildirs-extension-parents m l)))
+               (--all? (plist-get it :expand) parents)))
+           l))
+
+(defun mu4e-maildirs-extension-toggle-maildir-at-point (&optional universal-arg)
+  ""
+  (interactive "P")
+  (let ((m nil)
+        (l mu4e-maildirs-extension-maildirs)
+        (marker (make-marker)))
+    (mu4e-maildirs-extension-with-buffer
+      (set-marker marker (point-at-bol)))
+    (setq m (--first (equal (plist-get it :marker) marker) l))
+    (let ((c (when m (mu4e-maildirs-extension-children m l))))
+      (when (and m c)
+        (setq m (plist-put m :expand (not (plist-get m :expand))))
+        (when universal-arg
+          (mapc (lambda(it)
+                  (when (mu4e-maildirs-extension-children it l)
+                    (setq it (plist-put it :expand (plist-get m :expand)))))
+                c))))
+
+    (mu4e-maildirs-extension-update)))
+
 (defun mu4e-maildirs-extension-update ()
   "Insert maildirs summary in `mu4e-main-view'."
-  (mu4e-maildirs-extension-fetch-maybe)
 
-  (let ((buf (get-buffer mu4e-maildirs-extension-buffer-name))
-        (maildirs mu4e-maildirs-extension-cached-maildirs-data)
-        (inhibit-read-only t))
-    (when buf
-      (with-current-buffer buf
-        (if mu4e-maildirs-extension-start-point
-            (delete-region mu4e-maildirs-extension-start-point
-                           mu4e-maildirs-extension-end-point)
-          (setq mu4e-maildirs-extension-start-point
-                (search-backward mu4e-maildirs-extension-insert-before-str)))
+  (let ((maildirs (mu4e-maildirs-extension-load-maildirs)))
+    (mu4e-maildirs-extension-with-buffer
+     (goto-char (point-max))
+     (if (and mu4e-maildirs-extension-start-point
+              mu4e-maildirs-extension-end-point)
+         (delete-region mu4e-maildirs-extension-start-point
+                        mu4e-maildirs-extension-end-point)
+       (setq mu4e-maildirs-extension-start-point
+             (search-backward mu4e-maildirs-extension-insert-before-str)))
 
-        (goto-char mu4e-maildirs-extension-start-point)
+     ;; persistent end-point mark
+     (setq mu4e-maildirs-extension-end-point (make-marker))
+     (set-marker mu4e-maildirs-extension-end-point mu4e-maildirs-extension-start-point)
+     (set-marker-insertion-type mu4e-maildirs-extension-end-point t)
 
-        (when mu4e-maildirs-extension-title
-          (insert "\n"
-                  (propertize mu4e-maildirs-extension-title 'face 'mu4e-title-face)))
+     (goto-char mu4e-maildirs-extension-start-point)
 
-        (when mu4e-maildirs-extension-action-text
-          (insert "\n"
-                (mu4e~main-action-str mu4e-maildirs-extension-action-text
-                                      mu4e-maildirs-extension-action-key)))
+     (when mu4e-maildirs-extension-title
+       (insert "\n"
+               (propertize mu4e-maildirs-extension-title 'face 'mu4e-title-face)))
 
-        (define-key mu4e-main-mode-map
-          mu4e-maildirs-extension-action-key
-          'mu4e-maildirs-extension-force-update)
+     (when mu4e-maildirs-extension-action-text
+       (insert "\n"
+               (mu4e~main-action-str mu4e-maildirs-extension-action-text
+                                     mu4e-maildirs-extension-action-key)))
 
-        (mapc #'(lambda (item)
-                    (insert (mu4e-maildirs-extension-action-str
-                             (funcall mu4e-maildirs-extension-propertize-func item)
-                             `(lambda ()
-                                (interactive)
-                                (mu4e~headers-jump-to-maildir ,(plist-get item :path))))))
-                maildirs)
+     (define-key mu4e-main-mode-map
+       mu4e-maildirs-extension-action-key
+       'mu4e-maildirs-extension-force-update)
 
-        (setq mu4e-maildirs-extension-end-point (point))
-        (goto-char (point-min))))))
+     (define-key mu4e-main-mode-map
+       mu4e-maildirs-extension-toggle-maildir-key
+       'mu4e-maildirs-extension-toggle-maildir-at-point)
+
+     (mapc #'(lambda (m)
+               (run-hook-with-args 'mu4e-maildirs-extension-before-insert-maildir-hook m)
+               (setq m (plist-put m :marker (copy-marker (point-marker))))
+               (mu4e-maildirs-extension-insert-maildir m)
+               (run-hook-with-args 'mu4e-maildirs-extension-after-insert-maildir-hook m))
+           (mu4e-maildirs-extension-expanded maildirs)))))
 
 (defun mu4e-maildirs-extension-force-update (&optional universal-arg)
   "Force update cache and summary.
@@ -299,19 +591,26 @@ When preceded with `universal-argument':
   (cond ((equal universal-arg nil)
          (mu4e-update-index))
         ((equal universal-arg '(4))
-         (setq mu4e-maildirs-extension-cached-maildirs-data nil))
+         (setq mu4e-maildirs-extension-maildirs nil))
         ((equal universal-arg '(16))
-         (setq mu4e-maildirs-extension-cached-maildirs-data nil)
+         (setq mu4e-maildirs-extension-maildirs nil)
          (mu4e-maildirs-extension-update))))
 
 ;;;###autoload
-(defun mu4e-maildirs-extension ()
+(defun mu4e-maildirs-extension-load ()
+  "Initialize."
+  (mu4e-maildirs-extension-unload)
+  (add-hook 'mu4e-index-updated-hook mu4e-maildirs-extension-index-updated-func)
+  (add-hook 'mu4e-main-mode-hook mu4e-maildirs-extension-main-view-func))
+
+;;;###autoload
+(defun mu4e-maildirs-extension-unload ()
   "Initialize."
   (remove-hook 'mu4e-index-updated-hook mu4e-maildirs-extension-index-updated-func)
-  (add-hook 'mu4e-index-updated-hook mu4e-maildirs-extension-index-updated-func)
+  (remove-hook 'mu4e-main-mode-hook mu4e-maildirs-extension-main-view-func))
 
-  (remove-hook 'mu4e-main-mode-hook mu4e-maildirs-extension-main-view-func)
-  (add-hook 'mu4e-main-mode-hook mu4e-maildirs-extension-main-view-func))
+;;;###autoload
+(defalias 'mu4e-maildirs-extension 'mu4e-maildirs-extension-load)
 
 (provide 'mu4e-maildirs-extension)
 ;;; mu4e-maildirs-extension.el ends here
