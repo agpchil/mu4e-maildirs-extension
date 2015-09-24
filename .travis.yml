@@ -1,13 +1,20 @@
-sudo: required
 language: emacs-lisp
-before_install:
-  - curl -fsSkL https://gist.github.com/rejeep/7736123/raw | sh
-  - export PATH="/home/travis/.cask/bin:$PATH"
-  - export PATH="/home/travis/.evm/bin:$PATH"
-  - evm install $EVM_EMACS --use
-  - cask
 env:
-  - EVM_EMACS=emacs-24.3-bin
+  - EMACS_VERSION=24.3 EMACS_CFLAGS="--quiet --enable-silent-rules --with-x-toolkit=no --without-x --without-all --with-xml2"
+  - EMACS_VERSION=24.5 EMACS_CFLAGS="--quiet --enable-silent-rules --with-x-toolkit=no --without-x --without-all --with-xml2"
+before_install:
+  - export PATH="/home/travis/.cask/bin:$PATH"
+  # Download emacs
+  - curl -o "/tmp/emacs-${EMACS_VERSION}.tar.gz" "https://ftp.gnu.org/gnu/emacs/emacs-${EMACS_VERSION}.tar.gz"
+  - tar xzf "/tmp/emacs-${EMACS_VERSION}.tar.gz" -C /tmp
+  - mv /tmp/emacs-${EMACS_VERSION} /tmp/emacs
+  # Install emacs
+  - (cd '/tmp/emacs' && ./configure ${EMACS_CFLAGS} --prefix="${HOME}")
+  - make -j2 -C '/tmp/emacs' V=0 install
+  # Install cask
+  - git clone --depth=1 https://github.com/cask/cask.git "${HOME}/.cask"
+install:
+  - cask
 script:
   - emacs --version
   - make test
