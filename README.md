@@ -1,3 +1,6 @@
+[![MELPA Stable](http://stable.melpa.org/packages/mu4e-maildirs-extension-badge.svg)](http://stable.melpa.org/#/mu4e-maildirs-extension)
+[![MELPA](http://melpa.org/packages/mu4e-maildirs-extension-badge.svg)](http://melpa.org/#/mu4e-maildirs-extension)
+
 # Mu4e maildirs extension
 
 This extension adds a maildir summary in `mu4e-main-view`.
