@@ -60,7 +60,7 @@ If set to 'Don't Display (nil)' it won't be displayed."
   :type '(choice string (const :tag "Don't Display" nil)))
 
 (defcustom mu4e-maildirs-extension-count-command-format
-  "mu find %s maildir:%s --fields 'i' 2>/dev/null |wc -l |tr -d '\n'"
+  "mu find %s maildir:%s --fields 'i' | wc -l"
   "The command to count a maildir.  [Most people won't need to edit this]."
   :group 'mu4e-maildirs-extension
   :type '(string))
@@ -288,17 +288,19 @@ If set to `nil' it won't be displayed."
                       opts
                       (mu4e~proc-escape mdir)))
          (finish-func `(lambda(proc event)
-                         (when (and (equal event "finished\n")
+                         (when (and (memq (process-status proc) '(exit))
                                     (buffer-live-p (process-buffer proc))
                                     ,callback)
-                           ;; (memq (process-status proc) '(exit))
                            (let ((buffer (process-buffer proc))
                                  (result nil))
                              (with-current-buffer buffer
-                               (setq result (string-to-number
+                               (setq result
+                                     (cond ((= 0 (process-exit-status proc))
+                                            (string-to-number
                                              (replace-regexp-in-string "![0-9]"
                                                                        ""
-                                                                       (buffer-string)))))
+                                                                       (buffer-string))))
+                                           (t 0))))
                              (mu4e-maildirs-extension-with-buffer
                               (funcall ,callback result))
                              (kill-buffer buffer)
