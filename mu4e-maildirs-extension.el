@@ -60,7 +60,7 @@ If set to 'Don't Display (nil)' it won't be displayed."
   :type '(choice string (const :tag "Don't Display" nil)))
 
 (defcustom mu4e-maildirs-extension-count-command-format
-  "mu find %s maildir:'%s' --fields 'i' 2>/dev/null |wc -l |tr -d '\n'"
+  "mu find %s maildir:%s --fields 'i' 2>/dev/null |wc -l |tr -d '\n'"
   "The command to count a maildir.  [Most people won't need to edit this]."
   :group 'mu4e-maildirs-extension
   :type '(string))
@@ -286,7 +286,7 @@ If set to `nil' it won't be displayed."
   "Fetch the result of executing the command for a MDIR with optional OPTS."
   (let* ((cmd (format mu4e-maildirs-extension-count-command-format
                       opts
-                      mdir))
+                      (mu4e~proc-escape mdir)))
          (finish-func `(lambda(proc event)
                          (when (and (equal event "finished\n")
                                     (buffer-live-p (process-buffer proc))
