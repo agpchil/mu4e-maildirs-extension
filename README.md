@@ -63,7 +63,12 @@ The command to count a maildir.  [Most people won't need to edit this].
 
 ### mu4e-maildirs-extension-custom-list
 
-Custom list of folders to show.
+List of folders to show.
+If set to nil all folders are shown.
+
+Example:
+  '("/account1/INBOX"
+    "/account2/INBOX")
 
 ### mu4e-maildirs-extension-default-collapse-level
 
@@ -103,13 +108,28 @@ The prefix for expanded maildir.
 
 The maildir format.
 
+Available formatters:
+
+%i is the folder indentation
+%p is the maildir prefix
+%l is the folder level
+%e is the expand flag
+%P is the maildir path
+%n is the maildir name
+%u is the unread count
+%t is the total count
+
+### mu4e-maildirs-extension-maildir-format-spec
+
+A function to build the maildir format spec.
+
 ### mu4e-maildirs-extension-maildir-hl-pred
 
 Predicate function used to highlight.
 
-### mu4e-maildirs-extension-maildir-hl-symbols
+### mu4e-maildirs-extension-maildir-hl-regex
 
-List of symbols to highlight when `mu4e-maildirs-extension-maildir-hl-pred' matches.
+Regex to highlight when `mu4e-maildirs-extension-maildir-hl-pred' matches.
 
 ### mu4e-maildirs-extension-maildir-indent
 
@@ -152,15 +172,17 @@ If you need more customization you can change the default format `| maildir_name
 ```lisp
 (defun my/mu4e-maildirs-extension-propertize-unread-only (item)
   "Propertize only the maildir unread count using ITEM plist."
-  (format "\t%s%s %s (%s/%s)"
-          (plist-get item :indent)
-          (plist-get item :separator)
-          (plist-get item :name)
-          (propertize (number-to-string (plist-get item :unread))
-                      'face (cond
-                             ((> (plist-get item :unread) 0) 'mu4e-maildirs-extension-maildir-unread-face)
-                             (t            'mu4e-maildirs-extension-maildir-face)))
-          (plist-get item :total)))
+  (let ((unread (or (plist-get item :unread) 0))
+        (total (or (plist-get item :total) 0)))
+    (format "\t%s%s %s (%s/%s)"
+            (plist-get item :indent)
+            (plist-get item :prefix)
+            (plist-get item :name)
+            (propertize (number-to-string unread)
+                        'face (cond
+                               ((> unread 0) 'mu4e-maildirs-extension-maildir-hl-face)
+                               (t            'mu4e-maildirs-extension-maildir-face)))
+            total)))
 ```
 
 Then set `mu4e-maildirs-extension-propertize-func` to `my/mu4e-maildirs-extension-propertize-unread-only` in the `customize-group` area.

@@ -66,7 +66,12 @@ If set to 'Don't Display (nil)' it won't be displayed."
   :type '(string))
 
 (defcustom mu4e-maildirs-extension-custom-list nil
-  "Custom list of folders to show."
+  "List of folders to show.
+If set to nil all folders are shown.
+
+Example:
+  '(\"/account1/INBOX\"
+    \"/account2/INBOX\")"
   :group 'mu4e-maildirs-extension
   :type '(repeat string))
   ;; :type '(sexp))
@@ -80,7 +85,18 @@ If set to 'Don't Display (nil)' it won't be displayed."
                  (const :tag "End of file" "\n")))
 
 (defcustom mu4e-maildirs-extension-maildir-format "\t%i%p %n (%u/%t)"
-  "The maildir format."
+  "The maildir format.
+
+Available formatters:
+
+%i is the folder indentation
+%p is the maildir prefix
+%l is the folder level
+%e is the expand flag
+%P is the maildir path
+%n is the maildir name
+%u is the unread count
+%t is the total count"
   :group 'mu4e-maildirs-extension
   :type '(string))
 
