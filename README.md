@@ -57,6 +57,27 @@ Hook called after inserting a maildir.
 
 Hook called before inserting a maildir.
 
+### mu4e-maildirs-extension-bookmark-format
+
+The bookmark stats format.
+
+Available formatters:
+
+%u is the unread count
+%t is the total count
+
+### mu4e-maildirs-extension-bookmark-format-spec
+
+A function to build the bookmark format spec.
+
+### mu4e-maildirs-extension-bookmark-hl-pred
+
+Predicate function used to highlight.
+
+### mu4e-maildirs-extension-bookmark-hl-regex
+
+Regex to highlight when `mu4e-maildirs-extension-bookmark-hl-pred' matches.
+
 ### mu4e-maildirs-extension-count-command-format
 
 The command to count a maildir.  [Most people won't need to edit this].
@@ -143,6 +164,11 @@ The char used for indentation.
 
 Max parallel processes.
 
+### mu4e-maildirs-extension-propertize-bm-func
+
+The function to format the bookmark info.
+Default dispays as ' (unread/total)'.
+
 ### mu4e-maildirs-extension-propertize-func
 
 The function to format the maildir info.
@@ -156,6 +182,10 @@ If set to `nil' it won't be displayed.
 ### mu4e-maildirs-extension-toggle-maildir-key
 
 Key shortcut to expand/collapse maildir at point.
+
+### mu4e-maildirs-extension-updating-string
+
+The string to show while updating in background.
 
 ### mu4e-maildirs-extension-maildir-face
 
