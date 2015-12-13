@@ -60,10 +60,15 @@ If set to 'Don't Display (nil)' it won't be displayed."
   :type '(choice string (const :tag "Don't Display" nil)))
 
 (defcustom mu4e-maildirs-extension-count-command-format
-  "mu find %s maildir:%s --fields 'i' | wc -l"
+  "mu find %s --fields 'i' | wc -l"
   "The command to count a maildir.  [Most people won't need to edit this]."
   :group 'mu4e-maildirs-extension
   :type '(string))
+
+(defcustom mu4e-maildirs-extension-special-chars-outside-quoting
+  (remove ?\s (append eshell-special-chars-outside-quoting '(?\*)))
+  "Characters that require escaping outside of double quotes.
+Without escaping them, they will introduce a change in the argument.")
 
 (defcustom mu4e-maildirs-extension-custom-list nil
   "List of folders to show.
@@ -345,11 +350,12 @@ If set to `nil' it won't be displayed."
             (t
              (mu4e-maildirs-extension-update))))))
 
-(defun mu4e-maildirs-extension-fetch (mdir opts &optional callback)
-  "Fetch the result of executing the command for a MDIR with optional OPTS."
-  (let* ((cmd (format mu4e-maildirs-extension-count-command-format
-                      opts
-                      (mu4e~proc-escape mdir)))
+(defun mu4e-maildirs-extension-fetch (query &optional callback)
+  "Execute the mu command with QUERY and fetch the result.
+Optional call the function CALLBACK on finish."
+  (let* ((eshell-special-chars-outside-quoting mu4e-maildirs-extension-special-chars-outside-quoting)
+         (cmd (format mu4e-maildirs-extension-count-command-format
+                      (eshell-quote-argument query)))
          (finish-func `(lambda(proc event)
                          (when (and (memq (process-status proc) '(exit))
                                     (buffer-live-p (process-buffer proc))
@@ -499,13 +505,14 @@ clicked."
 (defun mu4e-maildirs-extension-count (m key flags)
   "Fetch count results using mu FLAGS and store result in M plist with KEY"
   (let* ((path (plist-get m :path))
+         (query (format "maildir:\"%s\" %s" path flags))
          (count (plist-get m key))
          (callback `(lambda(result)
                        (let ((m (--first (equal (plist-get it :path) ,path)
                                          mu4e-maildirs-extension-maildirs)))
                          (setq m (plist-put m ,key result))))))
     (unless count
-      (mu4e-maildirs-extension-fetch path flags callback))
+      (mu4e-maildirs-extension-fetch query callback))
     (when (numberp count)
       (number-to-string count))))
 
@@ -645,7 +652,7 @@ clicked."
                                         mu4e-maildirs-extension-bookmarks)))
                         (setq m (plist-put m ,key result))))))
     (unless count
-      (mu4e-maildirs-extension-fetch "/*" flags callback))
+      (mu4e-maildirs-extension-fetch flags callback))
     (when (numberp count)
       (number-to-string count))))
 
