@@ -34,6 +34,7 @@
 
 ;;; Code:
 (require 'mu4e)
+(require 'eshell)
 (require 'dash)
 
 (defgroup mu4e-maildirs-extension nil
