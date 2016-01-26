@@ -34,7 +34,6 @@
 
 ;;; Code:
 (require 'mu4e)
-(require 'eshell)
 (require 'dash)
 
 (defgroup mu4e-maildirs-extension nil
@@ -66,11 +65,6 @@ If set to 'Don't Display (nil)' it won't be displayed."
   :group 'mu4e-maildirs-extension
   :type '(string))
 
-(defcustom mu4e-maildirs-extension-special-chars-outside-quoting
-  (remove ?\s (append eshell-special-chars-outside-quoting '(?\*)))
-  "Characters that require escaping outside of double quotes.
-Without escaping them, they will introduce a change in the argument.")
-
 (defcustom mu4e-maildirs-extension-custom-list nil
   "List of folders to show.
 If set to nil all folders are shown.
@@ -81,6 +75,19 @@ Example:
   :group 'mu4e-maildirs-extension
   :type '(repeat string))
   ;; :type '(sexp))
+
+(defcustom mu4e-maildirs-extension-use-bookmarks
+  nil
+  "If non-nil, show the bookmarks count in the mu4e main view."
+  :group 'mu4e-maildirs-extension
+  :type 'boolean
+  :risky t)
+
+(defcustom mu4e-maildirs-extension-use-maildirs
+  t
+  "If non-nil, show the maildir summary in the mu4e main view."
+  :group 'mu4e-maildirs-extension
+  :type 'boolean)
 
 (defcustom mu4e-maildirs-extension-insert-before-str "\n  Misc"
   "The place where the maildirs section should be inserted."
@@ -351,13 +358,24 @@ If set to `nil' it won't be displayed."
             (t
              (mu4e-maildirs-extension-update))))))
 
-(defun mu4e-maildirs-extension-fetch (query &optional callback)
-  "Execute the mu command with QUERY and fetch the result.
+(defun mu4e-maildirs-extension-bookmark-command (query)
+  "Quote the mu bookmark command with arguments in QUERY quoted."
+  (format mu4e-maildirs-extension-count-command-format
+          (mapconcat #'append
+                     (mapcar 'shell-quote-argument (split-string query " "))
+                     " ")))
+
+(defun mu4e-maildirs-extension-maildir-command (path flags)
+  "Quote the mu maildir command with PATH and FLAGS arguments quoted."
+  (let ((query (format "%s %s"
+                       (shell-quote-argument (concat "maildir:" path))
+                       (shell-quote-argument flags))))
+    (format mu4e-maildirs-extension-count-command-format query)))
+
+(defun mu4e-maildirs-extension-fetch (cmd &optional callback)
+  "Execute the mu CMD in a shell process and fetch the result.
 Optional call the function CALLBACK on finish."
-  (let* ((eshell-special-chars-outside-quoting mu4e-maildirs-extension-special-chars-outside-quoting)
-         (cmd (format mu4e-maildirs-extension-count-command-format
-                      (eshell-quote-argument query)))
-         (finish-func `(lambda(proc event)
+  (let* ((finish-func `(lambda(proc event)
                          (when (and (memq (process-status proc) '(exit))
                                     (buffer-live-p (process-buffer proc))
                                     ,callback)
@@ -506,14 +524,14 @@ clicked."
 (defun mu4e-maildirs-extension-count (m key flags)
   "Fetch count results using mu FLAGS and store result in M plist with KEY"
   (let* ((path (plist-get m :path))
-         (query (format "maildir:\"%s\" %s" path flags))
+         (cmd (mu4e-maildirs-extension-maildir-command path flags))
          (count (plist-get m key))
          (callback `(lambda(result)
                        (let ((m (--first (equal (plist-get it :path) ,path)
                                          mu4e-maildirs-extension-maildirs)))
                          (setq m (plist-put m ,key result))))))
     (unless count
-      (mu4e-maildirs-extension-fetch query callback))
+      (mu4e-maildirs-extension-fetch cmd callback))
     (when (numberp count)
       (number-to-string count))))
 
@@ -647,13 +665,14 @@ clicked."
 (defun mu4e-maildirs-extension-bm-count (bm key flags)
   "Fetch count results using mu FLAGS and store result in M plist with KEY"
   (let* ((data (plist-get bm :data))
+         (cmd (mu4e-maildirs-extension-bookmark-command flags))
          (count (plist-get bm key))
          (callback `(lambda(result)
                       (let ((m (--first (equal (plist-get it :data) ',data)
                                         mu4e-maildirs-extension-bookmarks)))
                         (setq m (plist-put m ,key result))))))
     (unless count
-      (mu4e-maildirs-extension-fetch flags callback))
+      (mu4e-maildirs-extension-fetch cmd callback))
     (when (numberp count)
       (number-to-string count))))
 
@@ -663,7 +682,8 @@ clicked."
   (let ((bookmarks (mu4e-maildirs-extension-load-bookmarks))
         (maildirs (mu4e-maildirs-extension-load-maildirs)))
     (mu4e-maildirs-extension-with-buffer
-      (mapc #'mu4e-maildirs-extension-bm-update bookmarks)
+      (when mu4e-maildirs-extension-use-bookmarks
+        (mapc #'mu4e-maildirs-extension-bm-update bookmarks))
      (goto-char (point-max))
      (cond ((and mu4e-maildirs-extension-start-point
                  mu4e-maildirs-extension-end-point)
@@ -682,31 +702,32 @@ clicked."
 
      (goto-char mu4e-maildirs-extension-start-point)
 
-     (when mu4e-maildirs-extension-title
-       (insert "\n"
-               (propertize mu4e-maildirs-extension-title 'face 'mu4e-title-face)))
-
-     (cond (mu4e-maildirs-extension-queue
-            (insert mu4e-maildirs-extension-updating-string))
-           (mu4e-maildirs-extension-action-text
-            (insert "\n"
-                    (mu4e~main-action-str mu4e-maildirs-extension-action-text
-                                          mu4e-maildirs-extension-action-key))))
-
      (define-key mu4e-main-mode-map
        mu4e-maildirs-extension-action-key
        'mu4e-maildirs-extension-force-update)
 
-     (define-key mu4e-main-mode-map
-       mu4e-maildirs-extension-toggle-maildir-key
-       'mu4e-maildirs-extension-toggle-maildir-at-point)
+     (when mu4e-maildirs-extension-use-maildirs
+       (when mu4e-maildirs-extension-title
+        (insert "\n"
+                (propertize mu4e-maildirs-extension-title 'face 'mu4e-title-face)))
 
-     (mapc #'(lambda (m)
-               (run-hook-with-args 'mu4e-maildirs-extension-before-insert-maildir-hook m)
-               (setq m (plist-put m :marker (copy-marker (point-marker))))
-               (mu4e-maildirs-extension-insert-maildir m)
-               (run-hook-with-args 'mu4e-maildirs-extension-after-insert-maildir-hook m))
-           (mu4e-maildirs-extension-expanded maildirs)))))
+       (cond (mu4e-maildirs-extension-queue
+              (insert mu4e-maildirs-extension-updating-string))
+             (mu4e-maildirs-extension-action-text
+              (insert "\n"
+                      (mu4e~main-action-str mu4e-maildirs-extension-action-text
+                                            mu4e-maildirs-extension-action-key))))
+
+       (define-key mu4e-main-mode-map
+         mu4e-maildirs-extension-toggle-maildir-key
+         'mu4e-maildirs-extension-toggle-maildir-at-point)
+
+       (mapc #'(lambda (m)
+                 (run-hook-with-args 'mu4e-maildirs-extension-before-insert-maildir-hook m)
+                 (setq m (plist-put m :marker (copy-marker (point-marker))))
+                 (mu4e-maildirs-extension-insert-maildir m)
+                 (run-hook-with-args 'mu4e-maildirs-extension-after-insert-maildir-hook m))
+             (mu4e-maildirs-extension-expanded maildirs))))))
 
 (defun mu4e-maildirs-extension-force-update (&optional universal-arg)
   "Force update cache and summary.

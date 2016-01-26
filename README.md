@@ -2,17 +2,34 @@
 [![MELPA](http://melpa.org/packages/mu4e-maildirs-extension-badge.svg)](http://melpa.org/#/mu4e-maildirs-extension)
 [![Build Status](https://travis-ci.org/agpchil/mu4e-maildirs-extension.svg)](https://travis-ci.org/agpchil/mu4e-maildirs-extension)
 
+**master** branch is **experimental**
+
 # Mu4e maildirs extension
 
 This extension adds a maildir summary in `mu4e-main-view`.
 
-It gets the list of maildirs and runs a `mu` command async for each maildir to count unread and total mails. To minimize performance issues this information is _cached_.
+It runs a `mu` command (async) in a shell process for each maildir to count unread and total mails.
 
 
 ![Screenshot](https://drive.google.com/uc?export=view&id=0Byv-S6nIE7oRVm85UGVxY3FqMUE)
 
 ## Requirements
 This extension needs [mu4e](http://github.com/djcb/mu) version 0.9.9.5 or newer to work.
+
+## Directory structure
+
+This extension expects the following maildir structure in `mu4e-maildir` directory
+
+```
+account1/
+  inbox/
+  drafts/
+  ...
+account2/
+  inbox/
+  drafts/
+  ...
+```
 
 ## Installation
 It's available on [MELPA](http://melpa.milkbox.net).
@@ -187,6 +204,14 @@ Key shortcut to expand/collapse maildir at point.
 
 The string to show while updating in background.
 
+### mu4e-maildirs-extension-use-bookmarks
+
+If non-nil, show the bookmarks count in the mu4e main view.
+
+### mu4e-maildirs-extension-use-maildirs
+
+If non-nil, show the maildir summary in the mu4e main view.
+
 ### mu4e-maildirs-extension-maildir-face
 
 Face for a normal maildir.
@@ -226,7 +251,11 @@ If you update the index outside emacs (by calling `mu` directly) you will need t
 
 Short summary of changes:
 
-* v0.9:
+* master:
+  - Add variables:
+    - mu4e-maildirs-extension-use-bookmarks
+    - mu4e-maildirs-extension-use-maildirs
+  - Add bookmarks support (experimental)
   - Improve customizations.
   - Add new highlight options.
   - Add -load/-unload functions

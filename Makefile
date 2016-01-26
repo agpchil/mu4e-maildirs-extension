@@ -1,6 +1,6 @@
 emacs ?= emacs
 
-LOAD = -l eshell.el -l dash.el -l mu4e-maildirs-extension.el
+LOAD =  -l dash.el -l mu4e-maildirs-extension.el
 
 # fake mu4e package
 MU4E_FIX = --eval "(provide 'mu4e)"
