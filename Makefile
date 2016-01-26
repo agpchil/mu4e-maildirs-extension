@@ -1,11 +1,13 @@
 emacs ?= emacs
 
-LOAD = -l dash.el -l mu4e-maildirs-extension.el
+LOAD =  -l dash.el -l mu4e-maildirs-extension.el
 
 # fake mu4e package
 MU4E_FIX = --eval "(provide 'mu4e)"
 # fake `mu4e~main-buffer-name' (defined in mu4e)
 MU4E_FIX += --eval "(defvar mu4e~main-buffer-name \"tests\")"
+# fake `mu4e-mu-binary' (defined in mu4e)
+MU4E_FIX += --eval "(defvar mu4e-mu-binary \"mu\")"
 # lexical-let is defined in cl
 MU4E_FIX += --eval "(require 'cl)"
 

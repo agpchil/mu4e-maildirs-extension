@@ -2,17 +2,34 @@
 [![MELPA](http://melpa.org/packages/mu4e-maildirs-extension-badge.svg)](http://melpa.org/#/mu4e-maildirs-extension)
 [![Build Status](https://travis-ci.org/agpchil/mu4e-maildirs-extension.svg)](https://travis-ci.org/agpchil/mu4e-maildirs-extension)
 
+**master** branch is **experimental**
+
 # Mu4e maildirs extension
 
 This extension adds a maildir summary in `mu4e-main-view`.
 
-It gets the list of maildirs and runs a `mu` command async for each maildir to count unread and total mails. To minimize performance issues this information is _cached_.
+It runs a `mu` command (async) in a shell process for each maildir to count unread and total mails.
 
 
 ![Screenshot](https://drive.google.com/uc?export=view&id=0Byv-S6nIE7oRVm85UGVxY3FqMUE)
 
 ## Requirements
 This extension needs [mu4e](http://github.com/djcb/mu) version 0.9.9.5 or newer to work.
+
+## Directory structure
+
+This extension expects the following maildir structure in `mu4e-maildir` directory
+
+```
+account1/
+  inbox/
+  drafts/
+  ...
+account2/
+  inbox/
+  drafts/
+  ...
+```
 
 ## Installation
 It's available on [MELPA](http://melpa.milkbox.net).
@@ -56,6 +73,27 @@ Hook called after inserting a maildir.
 ### mu4e-maildirs-extension-before-insert-maildir-hook
 
 Hook called before inserting a maildir.
+
+### mu4e-maildirs-extension-bookmark-format
+
+The bookmark stats format.
+
+Available formatters:
+
+%u is the unread count
+%t is the total count
+
+### mu4e-maildirs-extension-bookmark-format-spec
+
+A function to build the bookmark format spec.
+
+### mu4e-maildirs-extension-bookmark-hl-pred
+
+Predicate function used to highlight.
+
+### mu4e-maildirs-extension-bookmark-hl-regex
+
+Regex to highlight when `mu4e-maildirs-extension-bookmark-hl-pred' matches.
 
 ### mu4e-maildirs-extension-count-command-format
 
@@ -143,6 +181,11 @@ The char used for indentation.
 
 Max parallel processes.
 
+### mu4e-maildirs-extension-propertize-bm-func
+
+The function to format the bookmark info.
+Default dispays as ' (unread/total)'.
+
 ### mu4e-maildirs-extension-propertize-func
 
 The function to format the maildir info.
@@ -156,6 +199,18 @@ If set to `nil' it won't be displayed.
 ### mu4e-maildirs-extension-toggle-maildir-key
 
 Key shortcut to expand/collapse maildir at point.
+
+### mu4e-maildirs-extension-updating-string
+
+The string to show while updating in background.
+
+### mu4e-maildirs-extension-use-bookmarks
+
+If non-nil, show the bookmarks count in the mu4e main view.
+
+### mu4e-maildirs-extension-use-maildirs
+
+If non-nil, show the maildir summary in the mu4e main view.
 
 ### mu4e-maildirs-extension-maildir-face
 
@@ -196,7 +251,12 @@ If you update the index outside emacs (by calling `mu` directly) you will need t
 
 Short summary of changes:
 
-* v0.9:
+* master:
+  - Use mu4e-mu-binary
+  - Add variables:
+    - mu4e-maildirs-extension-use-bookmarks
+    - mu4e-maildirs-extension-use-maildirs
+  - Add bookmarks support (experimental)
   - Improve customizations.
   - Add new highlight options.
   - Add -load/-unload functions
