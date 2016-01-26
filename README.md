@@ -252,6 +252,7 @@ If you update the index outside emacs (by calling `mu` directly) you will need t
 Short summary of changes:
 
 * master:
+  - Use mu4e-mu-binary
   - Add variables:
     - mu4e-maildirs-extension-use-bookmarks
     - mu4e-maildirs-extension-use-maildirs

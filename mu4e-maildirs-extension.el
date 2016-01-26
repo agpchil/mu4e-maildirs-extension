@@ -60,7 +60,7 @@ If set to 'Don't Display (nil)' it won't be displayed."
   :type '(choice string (const :tag "Don't Display" nil)))
 
 (defcustom mu4e-maildirs-extension-count-command-format
-  "mu find %s --fields 'i' | wc -l"
+  (concat mu4e-mu-binary " find %s --fields 'i' | wc -l")
   "The command to count a maildir.  [Most people won't need to edit this]."
   :group 'mu4e-maildirs-extension
   :type '(string))
