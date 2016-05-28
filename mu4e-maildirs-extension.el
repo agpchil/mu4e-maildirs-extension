@@ -570,9 +570,13 @@ clicked."
   "Insert maildir entry into mu4e main view."
   (insert (mu4e-maildirs-extension-action-str
            (funcall mu4e-maildirs-extension-propertize-func m)
-           `(lambda ()
-              (interactive)
-              (mu4e~headers-jump-to-maildir ,(plist-get m :path))))))
+           `(lambda (prefix)
+              (interactive "P")
+              (let ((maildir ,(plist-get m :path)))
+                (if prefix
+                    (mu4e~headers-search-execute
+                     (format "%s AND flag:unread" maildir) nil)
+                  (mu4e~headers-jump-to-maildir maildir)))))))
 
 (defun mu4e-maildirs-extension-new-maildir (path)
   "Build new maildir plist from maildir PATH."
