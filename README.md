@@ -52,6 +52,8 @@ The following key-bindings are added in `mu4e-main-view`:
 - `C-u C-u u` clear the cache and refresh.
 - `SPC` Collapse/Expand maildir at point.
 - `C-u SPC` Collapse/Expand maildir at point and its children.
+- `RET` Jump to the maildir at point.
+- `C-u RET` Jump to the maildir at point but show only unread mails.
 
 ## M-x customize
 
