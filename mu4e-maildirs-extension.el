@@ -468,13 +468,14 @@ Given PATH \"/foo/bar/alpha\" will return '(\"/foo\" \"/bar\")."
   "Fetch data or load from cache."
   (unless mu4e-maildirs-extension-bookmarks
     (mapc (lambda(it)
-            (let ((query (nth 0 it))
+            (let ((query (eval (nth 0 it)))
                   (bm (list :data it)))
-              (add-to-list 'mu4e-maildirs-extension-bookmarks bm t)
-              (mu4e-maildirs-extension-bm-count bm
-                                                :unread
-                                                (concat query " AND flag:unread"))
-              (mu4e-maildirs-extension-bm-count bm :total query)))
+              (when (stringp query)
+                (add-to-list 'mu4e-maildirs-extension-bookmarks bm t)
+                (mu4e-maildirs-extension-bm-count bm
+                                                  :unread
+                                                  (concat "(" query ") AND flag:unread"))
+                (mu4e-maildirs-extension-bm-count bm :total query))))
           mu4e-bookmarks))
   mu4e-maildirs-extension-bookmarks)
 
@@ -683,11 +684,11 @@ clicked."
 (defun mu4e-maildirs-extension-update ()
   "Insert maildirs summary in `mu4e-main-view'."
 
-  (let ((bookmarks (mu4e-maildirs-extension-load-bookmarks))
-        (maildirs (mu4e-maildirs-extension-load-maildirs)))
+  (let ((maildirs (mu4e-maildirs-extension-load-maildirs)))
     (mu4e-maildirs-extension-with-buffer
       (when mu4e-maildirs-extension-use-bookmarks
-        (mapc #'mu4e-maildirs-extension-bm-update bookmarks))
+        (mapc #'mu4e-maildirs-extension-bm-update
+              (mu4e-maildirs-extension-load-bookmarks)))
      (goto-char (point-max))
      (cond ((and mu4e-maildirs-extension-start-point
                  mu4e-maildirs-extension-end-point)
