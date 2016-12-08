@@ -76,6 +76,16 @@ Example:
   :type '(repeat string))
   ;; :type '(sexp))
 
+(defcustom mu4e-maildirs-extension-ignored-regex
+  nil
+  "Optional regular expression that is used for filtering list of
+maildirs. It's a dynamic alternative to
+mu4e-maildirs-extension-custom-list - new maildirs will
+automatically appear in the list unless they are explicitly
+ignored."
+  :group 'mu4e-maildirs-extension
+  :type '(choice string (const :tag "Show all maildirs" nil)))
+
 (defcustom mu4e-maildirs-extension-use-bookmarks
   nil
   "If non-nil, show the bookmarks count in the mu4e main view."
@@ -418,10 +428,18 @@ Given PATH \"/foo/bar/alpha\" will return '(\"/foo\" \"/bar\")."
           (t (setq all-parents parents)))
     all-parents))
 
+(defun mu4e-maildirs-extension-get-relevant-maildirs ()
+  "Get a list of maildirs set (or filtered) according to
+  configuration values."
+  (or mu4e-maildirs-extension-custom-list
+      (let ((list (mu4e-get-maildirs)))
+        (if mu4e-maildirs-extension-ignored-regex
+            (--remove (string-match mu4e-maildirs-extension-ignored-regex it) list)
+          list))))
+
 (defun mu4e-maildirs-extension-paths ()
   "Get maildirs paths."
-  (let ((paths (or mu4e-maildirs-extension-custom-list
-                   (mu4e-get-maildirs)))
+  (let ((paths (mu4e-maildirs-extension-get-relevant-maildirs))
         (paths-to-show nil))
 
     (mapc #'(lambda (name)
