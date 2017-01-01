@@ -2,7 +2,7 @@
 
 ;; This file is not part of Emacs
 
-;; Copyright (C) 2013 Andreu Gil Pàmies
+;; Copyright (C) 2013--2017 Andreu Gil Pàmies
 
 ;; Filename: mu4e-maildirs-extension.el
 ;; Version: 0.1
@@ -188,7 +188,7 @@ Available formatters:
   :type 'hook)
 
 (defcustom mu4e-maildirs-extension-after-insert-maildir-hook
-  '(mu4e-maildirs-extension-insert-newline)
+  '(mu4e-maildirs-extension-insert-newline-when-unread)
   "Hook called after inserting a maildir."
   :group 'mu4e-maildirs-extension
   :type 'hook)
@@ -255,12 +255,16 @@ Offlineimap does this when setting `sep = .'."
   :group 'mu4e-maildirs-extension
   :type '(string))
 
-
 (defcustom mu4e-maildirs-extension-title "  Maildirs\n"
   "The title for the maildirs extension section.
 If set to `nil' it won't be displayed."
   :group 'mu4e-maildirs-extension
   :type '(choice string (const :tag "Don't Display" nil)))
+
+(defcustom mu4e-maildirs-extension-hide-empty-maildirs nil
+  "Non-nil indicates that maildirs with no new message are hidden."
+  :group 'mu4e-maildirs-extension
+  :type 'boolean)
 
 (defface mu4e-maildirs-extension-maildir-face
   '((t :inherit mu4e-header-face))
@@ -503,7 +507,7 @@ Given PATH \"/foo/bar/alpha\" will return '(\"/foo\" \"/bar\")."
     (let ((paths (mu4e-maildirs-extension-paths)))
       (setq mu4e-maildirs-extension-maildirs
             (mapcar #'mu4e-maildirs-extension-new-maildir paths))))
-  (mapc #'(lambda(it)
+  (mapc #'(lambda (it)
             (mu4e-maildirs-extension-count-unread it)
             (mu4e-maildirs-extension-count-total it)
             (mu4e-maildirs-extension-update-maildir-prefix it))
@@ -531,6 +535,12 @@ clicked."
       (- (length newstr) 1) 'mouse-face 'highlight newstr)
     newstr))
 
+(defun mu4e-maildirs-extension-run-when-unread (m func args)
+  "Call FUNC passing ARGS to it if M contains unread messages."
+  (when (or (not mu4e-maildirs-extension-hide-empty-maildirs)
+            (> (or (plist-get m :unread) 0) 0))
+    (funcall func args)))
+
 (defun mu4e-maildirs-extension-insert-newline-when-root-maildir (m)
   "Insert a newline when M is a root maildir."
   (when (equal (plist-get m :level) 0)
@@ -539,6 +549,10 @@ clicked."
 (defun mu4e-maildirs-extension-insert-newline (m)
   "Insert a newline."
   (insert "\n"))
+
+(defun mu4e-maildirs-extension-insert-newline-when-unread (m)
+  "Insert a newline if M contains unread messages."
+  (mu4e-maildirs-extension-run-when-unread m #'mu4e-maildirs-extension-insert-newline m))
 
 (defun mu4e-maildirs-extension-count (m key flags)
   "Fetch count results using mu FLAGS and store result in M plist with KEY"
@@ -748,7 +762,7 @@ clicked."
        (mapc #'(lambda (m)
                  (run-hook-with-args 'mu4e-maildirs-extension-before-insert-maildir-hook m)
                  (setq m (plist-put m :marker (copy-marker (point-marker))))
-                 (mu4e-maildirs-extension-insert-maildir m)
+                 (mu4e-maildirs-extension-run-when-unread m #'mu4e-maildirs-extension-insert-maildir m)
                  (run-hook-with-args 'mu4e-maildirs-extension-after-insert-maildir-hook m))
              (mu4e-maildirs-extension-expanded maildirs))))))
 

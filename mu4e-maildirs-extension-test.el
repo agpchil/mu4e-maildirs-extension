@@ -2,7 +2,7 @@
 
 ;; This file is not part of Emacs
 
-;; Copyright (C) 2015 Andreu Gil Pàmies
+;; Copyright (C) 2015--2017 Andreu Gil Pàmies
 
 ;; Filename: mu4e-maildirs-extension-test.el
 ;; Version: 0.1
@@ -318,6 +318,44 @@ Each subdirectory is not a valid submaildir but a dir containing submaildirs."
                                             mu4e-maildirs-extension-maildirs))
          (prefix (mu4e-maildirs-extension-update-maildir-prefix m)))
     (should (equal prefix mu4e-maildirs-extension-maildir-default-prefix))))
+
+(ert-deftest mu4e-maildirs-extension-run-when-unread/default ()
+  "Tests default when option mu4e-maildirs-extension-hide-empty-maildirs not set."
+  (let* ((path-list '("/account1/*" "/account1/inbox"))
+         (mu4e-maildirs-extension-maildirs
+          (mapcar (lambda(path)
+                    (mu4e-maildirs-extension-new-maildir path))
+                  path-list))
+         (m (mu4e-maildirs-extension-member "/account1/*"
+                                            mu4e-maildirs-extension-maildirs))
+         (prefix nil))
+    (setq mu4e-maildirs-extension-hide-empty-maildirs nil)
+    (should (equal (or (mu4e-maildirs-extension-run-when-unread
+                        m '(lambda (x) 1) nil)
+                       0)
+                   1))))
+
+
+(ert-deftest mu4e-maildirs-extension-run-when-unread/option-set ()
+  "Tests default when option mu4e-maildirs-extension-hide-empty-maildirs not set."
+  (let* ((path-list '("/account1/*" "/account1/inbox"))
+         (mu4e-maildirs-extension-maildirs
+          (mapcar (lambda(path)
+                    (mu4e-maildirs-extension-new-maildir path))
+                  path-list))
+         (m (mu4e-maildirs-extension-member "/account1/*"
+                                            mu4e-maildirs-extension-maildirs))
+         (prefix nil))
+    (setq mu4e-maildirs-extension-hide-empty-maildirs t)
+    (should (equal (or (mu4e-maildirs-extension-run-when-unread
+                        m '(lambda (x) 1) nil)
+                       0)
+                   0))
+  (setq m (plist-put m :unread 1))
+      (should (equal (or (mu4e-maildirs-extension-run-when-unread
+                        m '(lambda (x) 1) nil)
+                       0)
+                   1))))
 
 (provide 'mu4e-maildirs-extension-test)
 ;;; mu4e-maildirs-extension-test.el ends here
