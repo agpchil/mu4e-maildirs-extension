@@ -186,17 +186,21 @@ Max parallel processes.
 ### mu4e-maildirs-extension-propertize-bm-func
 
 The function to format the bookmark info.
-Default dispays as ' (unread/total)'.
+Default displays as ' (unread/total)'.
 
 ### mu4e-maildirs-extension-propertize-func
 
 The function to format the maildir info.
-Default dispays as '| maildir_name (unread/total)'.
+Default displays as '| maildir_name (unread/total)'.
 
 ### mu4e-maildirs-extension-title
 
 The title for the maildirs extension section.
 If set to `nil' it won't be displayed.
+
+### mu4e-maildirs-extension-hide-empty-maildirs
+
+If non-nil, hide maildirs that do not contain new mail.
 
 ### mu4e-maildirs-extension-toggle-maildir-key
 
