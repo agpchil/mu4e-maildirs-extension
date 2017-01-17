@@ -490,7 +490,7 @@ Given PATH \"/foo/bar/alpha\" will return '(\"/foo\" \"/bar\")."
   "Fetch data or load from cache."
   (unless mu4e-maildirs-extension-bookmarks
     (mapc (lambda(it)
-            (let ((query (eval (nth 0 it)))
+            (let ((query (eval (mu4e-bookmark-query it)))
                   (bm (list :data it)))
               (when (stringp query)
                 (add-to-list 'mu4e-maildirs-extension-bookmarks bm t)
@@ -498,7 +498,7 @@ Given PATH \"/foo/bar/alpha\" will return '(\"/foo\" \"/bar\")."
                                                   :unread
                                                   (concat "(" query ") AND flag:unread"))
                 (mu4e-maildirs-extension-bm-count bm :total query))))
-          mu4e-bookmarks))
+          (mu4e-bookmarks)))
   mu4e-maildirs-extension-bookmarks)
 
 (defun mu4e-maildirs-extension-load-maildirs ()
@@ -593,7 +593,7 @@ clicked."
 (defun mu4e-maildirs-extension-bm-update (bm)
   "Update bookmark BM entry at MARKER in mu4e main view."
   (let* ((data (plist-get bm :data))
-         (title (nth 1 data)))
+         (title (mu4e-bookmark-name data)))
     (goto-char (point-min))
     (when (search-forward title nil t)
       (delete-region (point) (point-at-eol))
