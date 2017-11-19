@@ -608,7 +608,9 @@ clicked."
               (let ((maildir ,(plist-get m :path)))
                 (if prefix
                     (mu4e~headers-search-execute
-                     (format "%s AND flag:unread" maildir) nil)
+                     (format "%s AND flag:unread"
+                             (shell-quote-argument (concat "maildir:" maildir)))
+                     nil)
                   (mu4e~headers-jump-to-maildir maildir)))))))
 
 (defun mu4e-maildirs-extension-new-maildir (path)
