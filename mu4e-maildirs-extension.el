@@ -382,7 +382,7 @@ If set to `nil' it won't be displayed."
 (defun mu4e-maildirs-extension-maildir-command (path flags)
   "Quote the mu maildir command with PATH and FLAGS arguments quoted."
   (let ((query (format "%s %s"
-                       (shell-quote-argument (concat "maildir:" path))
+                       (shell-quote-argument (format "maildir:\"%s\"" path))
                        (shell-quote-argument flags))))
     (format mu4e-maildirs-extension-count-command-format query)))
 
@@ -609,7 +609,7 @@ clicked."
                 (if prefix
                     (mu4e~headers-search-execute
                      (format "%s AND flag:unread"
-                             (shell-quote-argument (concat "maildir:" maildir)))
+                             (shell-quote-argument (format "maildir:\"%s\"" maildir)))
                      nil)
                   (mu4e~headers-jump-to-maildir maildir)))))))
 
