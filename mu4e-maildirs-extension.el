@@ -300,6 +300,8 @@ If set to `nil' it won't be displayed."
 (defvar mu4e-maildirs-extension-main-view-func
   'mu4e-maildirs-extension-main-view-handler)
 
+(defvar mu4e-maildirs-extension-bookmark-last-bm-update-point nil)
+
 (define-obsolete-variable-alias
   'mu4e-maildirs-extension-submaildir-indent
   'mu4e-maildirs-extension-maildir-indent
@@ -594,8 +596,11 @@ clicked."
   "Update bookmark BM entry at MARKER in mu4e main view."
   (let* ((data (plist-get bm :data))
          (title (mu4e-bookmark-name data)))
-    (goto-char (point-min))
-    (when (search-forward title nil t)
+    (if mu4e-maildirs-extension-bookmark-last-bm-update-point
+        (goto-char mu4e-maildirs-extension-bookmark-last-bm-update-point)
+      (goto-char (point-min)))
+    (setq mu4e-maildirs-extension-bookmark-last-bm-update-point (search-forward title nil t))
+    (when mu4e-maildirs-extension-bookmark-last-bm-update-point
       (delete-region (point) (point-at-eol))
       (insert (funcall mu4e-maildirs-extension-propertize-bm-func bm)))))
 
@@ -721,6 +726,7 @@ clicked."
   (let ((maildirs (mu4e-maildirs-extension-load-maildirs)))
     (mu4e-maildirs-extension-with-buffer
       (when mu4e-maildirs-extension-use-bookmarks
+        (setq mu4e-maildirs-extension-bookmark-last-bm-update-point nil)
         (mapc #'mu4e-maildirs-extension-bm-update
               (mu4e-maildirs-extension-load-bookmarks)))
      (goto-char (point-max))
