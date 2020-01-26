@@ -300,8 +300,6 @@ If set to `nil' it won't be displayed."
 (defvar mu4e-maildirs-extension-main-view-func
   'mu4e-maildirs-extension-main-view-handler)
 
-(defvar mu4e-maildirs-extension-bookmark-last-bm-update-point nil)
-
 (define-obsolete-variable-alias
   'mu4e-maildirs-extension-submaildir-indent
   'mu4e-maildirs-extension-maildir-indent
@@ -592,17 +590,12 @@ clicked."
                                           fmt)))
     (format-spec fmt (funcall mu4e-maildirs-extension-maildir-format-spec bm))))
 
-(defun mu4e-maildirs-extension-bm-update (bm)
+(defun mu4e-maildirs-extension-bm-update (bm-point)
   "Update bookmark BM entry at MARKER in mu4e main view."
-  (let* ((data (plist-get bm :data))
-         (title (mu4e-bookmark-name data)))
-    (if mu4e-maildirs-extension-bookmark-last-bm-update-point
-        (goto-char mu4e-maildirs-extension-bookmark-last-bm-update-point)
-      (goto-char (point-min)))
-    (setq mu4e-maildirs-extension-bookmark-last-bm-update-point (search-forward title nil t))
-    (when mu4e-maildirs-extension-bookmark-last-bm-update-point
-      (delete-region (point) (point-at-eol))
-      (insert (funcall mu4e-maildirs-extension-propertize-bm-func bm)))))
+  (when (cdr bm-point)
+    (goto-char (cdr bm-point))
+    (delete-region (point) (point-at-eol))
+    (insert (funcall mu4e-maildirs-extension-propertize-bm-func (car bm-point)))))
 
 (defun mu4e-maildirs-extension-insert-maildir (m)
   "Insert maildir entry into mu4e main view."
@@ -726,9 +719,13 @@ clicked."
   (let ((maildirs (mu4e-maildirs-extension-load-maildirs)))
     (mu4e-maildirs-extension-with-buffer
       (when mu4e-maildirs-extension-use-bookmarks
-        (setq mu4e-maildirs-extension-bookmark-last-bm-update-point nil)
         (mapc #'mu4e-maildirs-extension-bm-update
-              (mu4e-maildirs-extension-load-bookmarks)))
+              (let (beg bm-points-alist)
+                (dolist (bm (mu4e-maildirs-extension-load-bookmarks))
+                  (goto-char (if beg beg (point-min)))
+                  (setq beg (search-forward (mu4e-bookmark-name (plist-get bm :data)) nil t))
+                  (push (cons bm beg) bm-points-alist))
+                bm-points-alist)))
      (goto-char (point-max))
      (cond ((and mu4e-maildirs-extension-start-point
                  mu4e-maildirs-extension-end-point)
