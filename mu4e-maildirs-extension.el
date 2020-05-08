@@ -735,8 +735,6 @@ clicked."
                   (setq bm-name (if mu4e-14
                                     (plist-get (plist-get bm :data) :name)
                                   (mu4e-bookmark-name (plist-get bm :data))))
-                  ;; (setq bm-name (plist-get (plist-get bm :data) :name))
-                  ;; (setq bm-name (mu4e-bookmark-name (plist-get bm :data))))
                   (setq beg (search-forward bm-name nil t))
                   (push (cons bm beg) bm-points-alist))
                 bm-points-alist)))
