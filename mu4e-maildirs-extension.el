@@ -281,7 +281,10 @@ If set to `nil' it won't be displayed."
   :group 'mu4e-maildirs-extension
   :type '(integer))
 
+(defvar mu4e-maildirs-extension-mu-14 (> (string-to-number mu4e-mu-version) 1.3))
+
 (defvar mu4e-maildirs-extension-running-processes 0)
+
 (defvar mu4e-maildirs-extension-queue nil)
 
 (defvar mu4e-maildirs-extension-start-point nil)
@@ -495,7 +498,8 @@ Given PATH \"/foo/bar/alpha\" will return '(\"/foo\" \"/bar\")."
   "Fetch data or load from cache."
   (unless mu4e-maildirs-extension-bookmarks
     (mapc (lambda(it)
-            (let ((query (eval (mu4e-bookmark-query it)))
+            (let ((query (if mu4e-maildirs-extension-mu-14 (eval (plist-get it :query))
+                           (eval (mu4e-bookmark-query it))))
                   (bm (list :data it)))
               (when (stringp query)
                 (add-to-list 'mu4e-maildirs-extension-bookmarks bm t)
@@ -728,7 +732,10 @@ clicked."
               (let (beg bm-points-alist)
                 (dolist (bm (mu4e-maildirs-extension-load-bookmarks))
                   (goto-char (if beg beg (point-min)))
-                  (setq beg (search-forward (mu4e-bookmark-name (plist-get bm :data)) nil t))
+                  (setq bm-name (if mu4e-maildirs-extension-mu-14
+                                    (plist-get (plist-get bm :data) :name)
+                                  (mu4e-bookmark-name (plist-get bm :data))))
+                  (setq beg (search-forward bm-name nil t))
                   (push (cons bm beg) bm-points-alist))
                 bm-points-alist)))
      (goto-char (point-max))
