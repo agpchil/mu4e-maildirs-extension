@@ -308,31 +308,6 @@ If set to `nil' it won't be displayed."
 (defvar mu4e-maildirs-extension-main-view-func
   'mu4e-maildirs-extension-main-view-handler)
 
-(define-obsolete-variable-alias
-  'mu4e-maildirs-extension-submaildir-indent
-  'mu4e-maildirs-extension-maildir-indent
-  "0.9")
-
-(define-obsolete-variable-alias
-  'mu4e-maildirs-extension-maildir-separator
-  'mu4e-maildirs-extension-maildir-collapsed-prefix
-  "0.9")
-
-(define-obsolete-variable-alias
-  'mu4e-maildirs-extension-submaildir-separator
-  'mu4e-maildirs-extension-maildir-default-prefix
-  "0.9")
-
-(define-obsolete-variable-alias
-  'mu4e-maildirs-extension-maildir-unread-face
-  'mu4e-maildirs-extension-maildir-hl-face
-  "0.9")
-
-(define-obsolete-variable-alias
-  'mu4e-maildirs-extension-cached-maildirs-data
-  'mu4e-maildirs-extension-maildirs
-  "0.9")
-
 (defun mu4e-maildirs-extension-index-updated-handler ()
   "Handler for `mu4e-index-updated-hook'."
   (let ((arg (if (get-buffer-window mu4e-maildirs-extension-buffer-name)
