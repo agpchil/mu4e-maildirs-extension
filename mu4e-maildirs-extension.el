@@ -744,7 +744,7 @@ clicked."
               (insert mu4e-maildirs-extension-updating-string))
              (mu4e-maildirs-extension-action-text
               (insert "\n"
-                      (mu4e~main-action-str mu4e-maildirs-extension-action-text
+                      (mu4e--main-action-str mu4e-maildirs-extension-action-text
                                             mu4e-maildirs-extension-action-key))))
 
        (define-key mu4e-main-mode-map
