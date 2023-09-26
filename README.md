@@ -1,5 +1,3 @@
-[![MELPA Stable](http://stable.melpa.org/packages/mu4e-maildirs-extension-badge.svg)](http://stable.melpa.org/#/mu4e-maildirs-extension)
-[![MELPA](http://melpa.org/packages/mu4e-maildirs-extension-badge.svg)](http://melpa.org/#/mu4e-maildirs-extension)
 [![Build Status](https://travis-ci.org/agpchil/mu4e-maildirs-extension.svg)](https://travis-ci.org/agpchil/mu4e-maildirs-extension)
 
 **DEPRECATED**
