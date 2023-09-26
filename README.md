@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/agpchil/mu4e-maildirs-extension.svg)](https://travis-ci.org/agpchil/mu4e-maildirs-extension)
-
 **DEPRECATED**
 
 This package is deprecated. Do not use it.
