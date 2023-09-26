@@ -2,7 +2,11 @@
 [![MELPA](http://melpa.org/packages/mu4e-maildirs-extension-badge.svg)](http://melpa.org/#/mu4e-maildirs-extension)
 [![Build Status](https://travis-ci.org/agpchil/mu4e-maildirs-extension.svg)](https://travis-ci.org/agpchil/mu4e-maildirs-extension)
 
-**master** branch is **experimental**
+**DEPRECATED**
+
+This package is deprecated. Do not use it.
+
+Recommended: Use the official mu4e package. Now it has this feature built-in: https://github.com/djcb/mu/pull/1586
 
 # Mu4e maildirs extension
 
@@ -32,13 +36,10 @@ account2/
 ```
 
 ## Installation
-It's available on [MELPA](http://melpa.milkbox.net).
-```lisp
-M-x package-install mu4e-maildirs-extension
-(mu4e-maildirs-extension)
-```
 
-Or you can copy `mu4e-maildirs-extension.el` file in your load path and add the following in your `~/.emacs` startup file:
+You can download the latest (archived) version at: https://atrebit.org/pub/releases/mu4e-maildirs-extension.tar.gz
+
+And then copy `mu4e-maildirs-extension.el` file in your load path and add the following in your `~/.emacs` startup file:
 ```lisp
 (require 'mu4e-maildirs-extension)
 (mu4e-maildirs-extension)
